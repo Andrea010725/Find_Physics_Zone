@@ -1,155 +1,120 @@
 import os
 import argparse
 import torch
-from tqdm import tqdm
-import sys
-sys.path.append("/home/zhiwen/DrivingWorld/")
-from datasets.dataset_nuplan import NuPlanTest
-import numpy as np
 import random
-
-def compute_speed(poses, k, fps):
-    delta = poses[k - 1] - poses[k - 2]   # poses shape: [T, 2]
-    speed = torch.norm(delta).item() * fps
-    return float(speed)
+import numpy as np
+from collections import defaultdict
 
 
-def compute_yaw_rate(yaws, k, fps):
-    yaw_rate = (yaws[k - 1, 0] - yaws[k - 2, 0]).item() * fps
-    return float(yaw_rate)
+def sample_random_negative(i, samples, rng):
+    j = rng.randrange(len(samples) - 1)
+    if j >= i:
+        j += 1
+    return j
 
 
-def compute_heading_change(yaws, k):
-    heading_change = (yaws[k - 1, 0] - yaws[0, 0]).item()
-    return float(heading_change)
+def sample_hard_negative(i, samples, rng, heading_thresh=0.10, speed_thresh=0.50):
+    target = samples[i]
+    candidates = []
+
+    for j in range(len(samples)):
+        if j == i:
+            continue
+
+        cond1 = abs(samples[j]["past_heading_change"] - target["past_heading_change"]) < heading_thresh
+        cond2 = abs(samples[j]["past_avg_speed"] - target["past_avg_speed"]) < speed_thresh
+
+        # 过去相似，但未来转向不同
+        cond3 = abs(samples[j]["future_delta_yaw"] - target["future_delta_yaw"]) > heading_thresh
+
+        if cond1 and cond2 and cond3:
+            candidates.append(j)
+
+    if len(candidates) == 0:
+        return sample_random_negative(i, samples, rng)
+    return rng.choice(candidates)
+
+
+def build_one_pair(base_sample, cond_sample, label, neg_type):
+    return {
+        "seq_id": base_sample["seq_id"],
+        "window_start": base_sample["window_start"],
+        "window_end": base_sample["window_end"],
+        "future_t": base_sample["future_t"],
+
+        "past_imgs": base_sample["past_imgs"].clone(),
+        "past_poses": base_sample["past_poses"].clone(),
+        "past_yaws": base_sample["past_yaws"].clone(),
+
+        "future_img": base_sample["future_img"].clone(),
+        "future_pose_cond": cond_sample["future_pose"].clone(),
+        "future_yaw_cond": cond_sample["future_yaw"].clone(),
+
+        "coherence_label": int(label),
+        "negative_type": neg_type,
+
+        "source_index": int(base_sample["seq_id"]),
+        "cond_source_index": int(cond_sample["seq_id"]),
+        "source_window_start": int(base_sample["window_start"]),
+        "cond_window_start": int(cond_sample["window_start"]),
+
+        # 方便后面分析负样本难度
+        "abs_future_delta_yaw_gap": float(abs(cond_sample["future_delta_yaw"] - base_sample["future_delta_yaw"])),
+        "abs_past_heading_gap": float(abs(cond_sample["past_heading_change"] - base_sample["past_heading_change"])),
+        "abs_past_speed_gap": float(abs(cond_sample["past_avg_speed"] - base_sample["past_avg_speed"])),
+    }
 
 
 def main(args):
-    os.makedirs(args.save_root, exist_ok=True)
+    rng = random.Random(args.seed)
+    physics_path = os.path.join(args.save_root, "physics_samples.pt")
+    samples = torch.load(physics_path)
 
-    dataset = NuPlanTest(
-        data_root=args.data_root,
-        json_root=args.json_root,
-        condition_frames=args.condition_frames,
-        downsample_fps=args.downsample_fps,
-        downsample_size=args.downsample_size,
-        h=args.h,
-        w=args.w,
-    )
-
-    fps = args.downsample_fps
-    k = args.condition_frames
-
-    samples = []
-
-    for i in tqdm(range(len(dataset))):
-        imgs, poses, yaws = dataset[i]
-
-        assert imgs.shape[0] > k
-        assert poses.shape[0] > k
-        assert yaws.shape[0] > k
-
-        sample = {
-            "index": i,
-            "past_imgs": imgs[:k].clone(),
-            "past_poses": poses[:k].clone(),
-            "past_yaws": yaws[:k].clone(),
-            "future_img": imgs[k].clone(),
-            "future_pose": poses[k].clone(),
-            "future_yaw": yaws[k].clone(),
-            "speed": compute_speed(poses, k, fps),
-            "yaw_rate": compute_yaw_rate(yaws, k, fps),
-            "heading_change": compute_heading_change(yaws, k),
-        }
-        samples.append(sample)
-
-        if i == 0:
-            print("first sample:")
-            print("past_imgs shape:", sample["past_imgs"].shape)
-            print("past_poses shape:", sample["past_poses"].shape)
-            print("past_yaws shape:", sample["past_yaws"].shape)
-            print("future_pose:", sample["future_pose"])
-            print("future_yaw:", sample["future_yaw"])
-            print("speed:", sample["speed"])
-            print("yaw_rate:", sample["yaw_rate"])
-            print("heading_change:", sample["heading_change"])
-
-    save_path = os.path.join(args.save_root, "physics_samples.pt")
-    torch.save(samples, save_path)
-    print(f"saved to {save_path}")
-    print(f"num samples = {len(samples)}")
-    
-    speeds = [s["speed"] for s in samples]
-    yaw_rates = [s["yaw_rate"] for s in samples]
-    heading_changes = [s["heading_change"] for s in samples]
-    print("\n===== statistics =====")
-    print(f"speed          mean={np.mean(speeds):.6f}, std={np.std(speeds):.6f}, min={np.min(speeds):.6f}, max={np.max(speeds):.6f}")
-    print(f"yaw_rate       mean={np.mean(yaw_rates):.6f}, std={np.std(yaw_rates):.6f}, min={np.min(yaw_rates):.6f}, max={np.max(yaw_rates):.6f}")
-    print(f"heading_change mean={np.mean(heading_changes):.6f}, std={np.std(heading_changes):.6f}, min={np.min(heading_changes):.6f}, max={np.max(heading_changes):.6f}")
-    print("======================")
-    
-    rng = random.Random(1234)
-    coherence_samples = []
+    out = []
 
     for i in range(len(samples)):
-        # 正样本：future 条件和 future 图像来自同一条序列
-        pos = {
-            "index": i,
-            "past_imgs": samples[i]["past_imgs"].clone(),
-            "past_poses": samples[i]["past_poses"].clone(),
-            "past_yaws": samples[i]["past_yaws"].clone(),
-            "future_img": samples[i]["future_img"].clone(),
-            "future_pose_cond": samples[i]["future_pose"].clone(),
-            "future_yaw_cond": samples[i]["future_yaw"].clone(),
-            "coherence_label": 1,
-            "source_index": i,
-            "cond_index": i,
-        }
-        coherence_samples.append(pos)
+        base = samples[i]
 
-        # 负样本：future 图像来自 i，但 future 条件换成 j
-        j = rng.randrange(len(samples) - 1)
-        if j >= i:
-            j += 1
+        # 正样本
+        out.append(build_one_pair(base, base, 1, "positive"))
 
-        neg = {
-            "index": i,
-            "past_imgs": samples[i]["past_imgs"].clone(),
-            "past_poses": samples[i]["past_poses"].clone(),
-            "past_yaws": samples[i]["past_yaws"].clone(),
-            "future_img": samples[i]["future_img"].clone(),
-            "future_pose_cond": samples[j]["future_pose"].clone(),
-            "future_yaw_cond": samples[j]["future_yaw"].clone(),
-            "coherence_label": 0,
-            "source_index": i,
-            "cond_index": j,
-        }
-        coherence_samples.append(neg)
+        # random negative
+        j_rand = sample_random_negative(i, samples, rng)
+        out.append(build_one_pair(base, samples[j_rand], 0, "random_mismatch"))
 
-    coherence_save_path = os.path.join(args.save_root, "coherence_samples.pt")
-    torch.save(coherence_samples, coherence_save_path)
-    print(f"saved coherence samples to {coherence_save_path}")
-    print(f"num coherence samples = {len(coherence_samples)}")
+        # hard negative
+        j_hard = sample_hard_negative(i, samples, rng)
+        out.append(build_one_pair(base, samples[j_hard], 0, "hard_mismatch"))
 
-    num_pos = sum([x["coherence_label"] for x in coherence_samples])
-    num_neg = len(coherence_samples) - num_pos
-    print("\n===== coherence statistics =====")
-    print(f"positive samples = {num_pos}")
-    print(f"negative samples = {num_neg}")
-    print("================================")
+    save_path = os.path.join(args.save_root, "coherence_samples.pt")
+    torch.save(out, save_path)
+
+    print(f"saved to {save_path}")
+    print(f"num coherence samples = {len(out)}")
+
+    type_count = defaultdict(int)
+    labels = []
+    for x in out:
+        type_count[x["negative_type"]] += 1
+        labels.append(x["coherence_label"])
+
+    print("label stats:")
+    print(f"positive = {sum(labels)}")
+    print(f"negative = {len(labels) - sum(labels)}")
+
+    print("type stats:")
+    for k, v in type_count.items():
+        print(f"{k}: {v}")
+
+    for key in ["abs_future_delta_yaw_gap", "abs_past_heading_gap", "abs_past_speed_gap"]:
+        vals = [x[key] for x in out if x["coherence_label"] == 0]
+        print(f"{key:25s} mean={np.mean(vals):.6f}, std={np.std(vals):.6f}, "
+              f"min={np.min(vals):.6f}, max={np.max(vals):.6f}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_root", type=str, default="/home/zhiwen/DrivingWorld/data")
-    parser.add_argument("--json_root", type=str, default="/home/zhiwen/DrivingWorld/data")
     parser.add_argument("--save_root", type=str, default="/home/zhiwen/DrivingWorld/data")
-
-    parser.add_argument("--condition_frames", type=int, default=15)
-    parser.add_argument("--downsample_fps", type=int, default=5)
-    parser.add_argument("--downsample_size", type=int, default=16)
-    parser.add_argument("--h", type=int, default=256)
-    parser.add_argument("--w", type=int, default=512)
-
+    parser.add_argument("--seed", type=int, default=1234)
     args = parser.parse_args()
     main(args)

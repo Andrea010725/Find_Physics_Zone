@@ -1,27 +1,75 @@
 import os
 import argparse
 import torch
+import numpy as np
 from tqdm import tqdm
 import sys
-sys.path.append("/home/zhiwen/DrivingWorld/")
+
+sys.path.append("/home/zhiwen/Find_Physics_Zone/")
 from datasets.dataset_nuplan import NuPlanTest
-import numpy as np
 
 
-def compute_speed(poses, k, fps):
-    delta = poses[k - 1] - poses[k - 2]   # poses shape: [T, 2]
-    speed = torch.norm(delta).item() * fps
-    return float(speed)
+def safe_yaw_diff(yaw2, yaw1):
+    """Return wrapped yaw difference in [-pi, pi]."""
+    diff = yaw2 - yaw1
+    return torch.atan2(torch.sin(diff), torch.cos(diff))
 
 
-def compute_yaw_rate(yaws, k, fps):
-    yaw_rate = (yaws[k - 1, 0] - yaws[k - 2, 0]).item() * fps
-    return float(yaw_rate)
+def compute_step_motion(poses, yaws, t, fps):
+    """
+    Compute one-step motion from t-1 -> t.
+    poses: [T, 2]
+    yaws:  [T, 1]
+    """
+    delta_xy = poses[t] - poses[t - 1]
+    delta_yaw = safe_yaw_diff(yaws[t, 0], yaws[t - 1, 0])
+
+    speed = torch.norm(delta_xy) * fps
+    yaw_rate = delta_yaw * fps
+
+    return {
+        "delta_x": float(delta_xy[0].item()),
+        "delta_y": float(delta_xy[1].item()),
+        "delta_yaw": float(delta_yaw.item()),
+        "speed": float(speed.item()),
+        "yaw_rate": float(yaw_rate.item()),
+    }
 
 
-def compute_heading_change(yaws, k):
-    heading_change = (yaws[k - 1, 0] - yaws[0, 0]).item()
-    return float(heading_change)
+def compute_past_summary(poses, yaws, start, k, fps):
+    """
+    Summarize motion over past window [start, start+k-1].
+    """
+    end = start + k - 1
+
+    speeds = []
+    yaw_rates = []
+    for t in range(start + 1, end + 1):
+        m = compute_step_motion(poses, yaws, t, fps)
+        speeds.append(m["speed"])
+        yaw_rates.append(m["yaw_rate"])
+
+    heading_change = safe_yaw_diff(yaws[end, 0], yaws[start, 0])
+
+    return {
+        "past_avg_speed": float(np.mean(speeds)),
+        "past_final_speed": float(speeds[-1]),
+        "past_avg_yaw_rate": float(np.mean(yaw_rates)),
+        "past_final_yaw_rate": float(yaw_rates[-1]),
+        "past_heading_change": float(heading_change.item()),
+    }
+
+
+def future_turn_class(delta_yaw, thresh=0.03):
+    """
+    0: left, 1: straight, 2: right
+    """
+    if delta_yaw > thresh:
+        return 0
+    elif delta_yaw < -thresh:
+        return 2
+    else:
+        return 1
 
 
 def main(args):
@@ -37,56 +85,79 @@ def main(args):
         w=args.w,
     )
 
-    fps = args.downsample_fps
     k = args.condition_frames
+    h = args.future_horizon
+    fps = args.downsample_fps
 
     samples = []
 
-    for i in tqdm(range(len(dataset))):
-        imgs, poses, yaws = dataset[i]
+    for seq_id in tqdm(range(len(dataset)), desc="building physics samples"):
+        imgs, poses, yaws = dataset[seq_id]
+        T = imgs.shape[0]
 
-        assert imgs.shape[0] > k
-        assert poses.shape[0] > k
-        assert yaws.shape[0] > k
+        assert poses.shape[0] == T
+        assert yaws.shape[0] == T
 
-        sample = {
-            "index": i,
-            "past_imgs": imgs[:k].clone(),
-            "past_poses": poses[:k].clone(),
-            "past_yaws": yaws[:k].clone(),
-            "future_img": imgs[k].clone(),
-            "future_pose": poses[k].clone(),
-            "future_yaw": yaws[k].clone(),
-            "speed": compute_speed(poses, k, fps),
-            "yaw_rate": compute_yaw_rate(yaws, k, fps),
-            "heading_change": compute_heading_change(yaws, k),
-        }
-        samples.append(sample)
+        max_start = T - k - h + 1
+        if max_start <= 0:
+            continue
 
-        if i == 0:
-            print("first sample:")
-            print("past_imgs shape:", sample["past_imgs"].shape)
-            print("past_poses shape:", sample["past_poses"].shape)
-            print("past_yaws shape:", sample["past_yaws"].shape)
-            print("future_pose:", sample["future_pose"])
-            print("future_yaw:", sample["future_yaw"])
-            print("speed:", sample["speed"])
-            print("yaw_rate:", sample["yaw_rate"])
-            print("heading_change:", sample["heading_change"])
+        for start in range(0, max_start, args.stride):
+            past_end = start + k - 1
+            future_t = past_end + h
+
+            past_imgs = imgs[start: start + k].clone()
+            past_poses = poses[start: start + k].clone()
+            past_yaws = yaws[start: start + k].clone()
+
+            future_img = imgs[future_t].clone()
+            future_pose = poses[future_t].clone()
+            future_yaw = yaws[future_t].clone()
+
+            past_summary = compute_past_summary(poses, yaws, start, k, fps)
+            future_motion = compute_step_motion(poses, yaws, future_t, fps)
+
+            sample = {
+                "seq_id": int(seq_id),
+                "window_start": int(start),
+                "window_end": int(past_end),
+                "future_t": int(future_t),
+
+                "past_imgs": past_imgs,
+                "past_poses": past_poses,
+                "past_yaws": past_yaws,
+
+                "future_img": future_img,
+                "future_pose": future_pose,
+                "future_yaw": future_yaw,
+
+                # past-summary targets
+                **past_summary,
+
+                # future-step targets
+                "future_delta_x": future_motion["delta_x"],
+                "future_delta_y": future_motion["delta_y"],
+                "future_delta_yaw": future_motion["delta_yaw"],
+                "future_speed": future_motion["speed"],
+                "future_yaw_rate": future_motion["yaw_rate"],
+                "future_turn_class": future_turn_class(future_motion["delta_yaw"]),
+            }
+            samples.append(sample)
 
     save_path = os.path.join(args.save_root, "physics_samples.pt")
     torch.save(samples, save_path)
+
     print(f"saved to {save_path}")
     print(f"num samples = {len(samples)}")
-    
-    speeds = [s["speed"] for s in samples]
-    yaw_rates = [s["yaw_rate"] for s in samples]
-    heading_changes = [s["heading_change"] for s in samples]
-    print("\n===== statistics =====")
-    print(f"speed          mean={np.mean(speeds):.6f}, std={np.std(speeds):.6f}, min={np.min(speeds):.6f}, max={np.max(speeds):.6f}")
-    print(f"yaw_rate       mean={np.mean(yaw_rates):.6f}, std={np.std(yaw_rates):.6f}, min={np.min(yaw_rates):.6f}, max={np.max(yaw_rates):.6f}")
-    print(f"heading_change mean={np.mean(heading_changes):.6f}, std={np.std(heading_changes):.6f}, min={np.min(heading_changes):.6f}, max={np.max(heading_changes):.6f}")
-    print("======================")
+
+    for key in [
+        "past_avg_speed", "past_final_speed", "past_avg_yaw_rate",
+        "past_heading_change", "future_speed", "future_yaw_rate",
+        "future_delta_yaw"
+    ]:
+        vals = [s[key] for s in samples]
+        print(f"{key:20s} mean={np.mean(vals):.6f}, std={np.std(vals):.6f}, "
+              f"min={np.min(vals):.6f}, max={np.max(vals):.6f}")
 
 
 if __name__ == "__main__":
@@ -94,12 +165,12 @@ if __name__ == "__main__":
     parser.add_argument("--data_root", type=str, default="/home/zhiwen/DrivingWorld/data")
     parser.add_argument("--json_root", type=str, default="/home/zhiwen/DrivingWorld/data")
     parser.add_argument("--save_root", type=str, default="/home/zhiwen/DrivingWorld/data")
-
     parser.add_argument("--condition_frames", type=int, default=15)
+    parser.add_argument("--future_horizon", type=int, default=1)
+    parser.add_argument("--stride", type=int, default=1)
     parser.add_argument("--downsample_fps", type=int, default=5)
     parser.add_argument("--downsample_size", type=int, default=16)
     parser.add_argument("--h", type=int, default=256)
     parser.add_argument("--w", type=int, default=512)
-
     args = parser.parse_args()
     main(args)
