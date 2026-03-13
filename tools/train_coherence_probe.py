@@ -5,7 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 
-
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler 
 FEATURE_PATH = "/home/zhiwen/DrivingWorld/data/coherence_features.pt"
 RESULT_PATH = "/home/zhiwen/DrivingWorld/data/coherence_probe_results.pt"
 
@@ -42,13 +43,23 @@ def evaluate_one_layer(X, y, n_splits=5, random_state=1234):
             max_iter=2000,
             random_state=random_state,
         )
-        clf.fit(X_train, y_train)
+        clf = Pipeline([
+    		("scaler", StandardScaler()),
+    		("clf", LogisticRegression(
+        	penalty="l2",
+        	C=1.0,
+        	solver="liblinear",
+        	max_iter=2000,
+        	random_state=random_state,
+    		))
+			])
 
         y_pred = clf.predict(X_test)
         y_prob = clf.predict_proba(X_test)[:, 1]
 
         acc = accuracy_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
+
+        f1 = f1_score(y_test, y_pred, zero_division=0)
         auc = roc_auc_score(y_test, y_prob)
 
         acc_list.append(acc)
@@ -56,14 +67,16 @@ def evaluate_one_layer(X, y, n_splits=5, random_state=1234):
         auc_list.append(auc)
 
     return {
-        "acc_mean": float(np.mean(acc_list)),
-        "acc_std": float(np.std(acc_list)),
-        "f1_mean": float(np.mean(f1_list)),
-        "f1_std": float(np.std(f1_list)),
-        "auc_mean": float(np.mean(auc_list)),
-        "auc_std": float(np.std(auc_list)),
+    "acc_mean": float(np.mean(acc_list)),
+    "acc_std": float(np.std(acc_list)),
+    "f1_mean": float(np.mean(f1_list)),
+    "f1_std": float(np.std(f1_list)),
+    "auc_mean": float(np.mean(auc_list)),
+    "auc_std": float(np.std(auc_list)),
+    "acc_list": acc_list,
+    "f1_list": f1_list,
+    "auc_list": auc_list,
     }
-
 
 def main():
     print(f"Loading feature file from: {FEATURE_PATH}")
@@ -76,11 +89,21 @@ def main():
     print("num samples =", len(y))
     print("positive =", int(y.sum()))
     print("negative =", int(len(y) - y.sum()))
+    
+    majority_acc = max(np.mean(y == 0), np.mean(y == 1))
+    print(f"majority baseline acc = {majority_acc:.4f}")
+    print("random baseline auc ≈ 0.5000")
 
     results = {}
 
     print("\n===== training coherence probes =====")
+    
     for layer_name, feats in layer_features.items():
+    
+        assert X.shape[0] == len(y), (
+    		f"Layer {layer_name}: X.shape[0]={X.shape[0]} != len(y)={len(y)}"
+			)
+        assert X.ndim == 2, f"Layer {layer_name}: expected 2D features, got {X.shape}"
         X = feats.numpy().astype(np.float32)
 
         print(f"Training layer: {layer_name}, feature shape = {X.shape}")

@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 root_path = os.path.abspath(__file__)
-root_path = '/'.join(root_path.split('/')[:-2])
+root_path = "/".join(root_path.split("/")[:-2])
 sys.path.append(root_path)
 
 from utils.config_utils import Config
@@ -29,8 +29,29 @@ COHERENCE_SAMPLES_PATH = "/home/zhiwen/DrivingWorld/data/coherence_samples.pt"
 PHYSICS_FEATURES_SAVE_PATH = "/home/zhiwen/DrivingWorld/data/physics_features.pt"
 COHERENCE_FEATURES_SAVE_PATH = "/home/zhiwen/DrivingWorld/data/coherence_features.pt"
 
-# 这里改成 "physics" 或 "coherence"
+# 改成 "physics" 或 "coherence"
 TASK = "coherence"
+
+# physics 标签字段：和你新的 physics_samples.pt 对齐
+PHYSICS_LABEL_KEYS = [
+    "past_avg_speed",
+    "past_avg_yaw_rate",
+    "past_heading_change",
+    "future_speed",
+    "future_yaw_rate",
+    "future_delta_yaw",
+]
+
+# 元信息字段：后面做 GroupKFold / 分类型分析会用到
+META_KEYS = [
+    "seq_id",
+    "window_start",
+    "window_end",
+    "future_t",
+    "negative_type",
+    "source_index",
+    "cond_source_index",
+]
 
 
 def build_args():
@@ -50,7 +71,10 @@ def init_environment(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.benchmark = True
+
+    # 如果你更重视可复现性，建议这样设置
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
 
 def load_probe_samples(task):
@@ -70,17 +94,17 @@ def load_probe_samples(task):
 def build_full_sequence(sample, task):
     """
     把单条 probe 样本组装成完整的 16 帧序列
-    （15 condition + 1 future）
+    = 15 condition + 1 future
     """
-    past_imgs = sample["past_imgs"]         # [15, 3, 256, 512]
-    past_poses = sample["past_poses"]       # [15, 2]
-    past_yaws = sample["past_yaws"]         # [15, 1]
+    past_imgs = sample["past_imgs"]     # [15, 3, 256, 512]
+    past_poses = sample["past_poses"]   # [15, 2]
+    past_yaws = sample["past_yaws"]     # [15, 1]
 
-    future_img = sample["future_img"].unsqueeze(0)   # [1, 3, 256, 512]
+    future_img = sample["future_img"].unsqueeze(0)  # [1, 3, 256, 512]
 
     if task == "physics":
-        future_pose = sample["future_pose"].unsqueeze(0)    # [1, 2]
-        future_yaw = sample["future_yaw"].unsqueeze(0)      # [1, 1]
+        future_pose = sample["future_pose"].unsqueeze(0)   # [1, 2]
+        future_yaw = sample["future_yaw"].unsqueeze(0)     # [1, 1]
     elif task == "coherence":
         future_pose = sample["future_pose_cond"].unsqueeze(0)
         future_yaw = sample["future_yaw_cond"].unsqueeze(0)
@@ -96,8 +120,8 @@ def build_full_sequence(sample, task):
 
 def encode_inputs_with_tokenizer(tokenizer, model_wrapper, samples, task, device):
     """
-    第一阶段：
-    先用 tokenizer 把图像序列编码成 start_feature，
+    Stage A:
+    先用 tokenizer 把图像序列编码成 feature_total，
     同时把 pose/yaw 变成 indices。
     这些结果先存在 CPU 内存里，后面再交给 world model。
     """
@@ -113,37 +137,41 @@ def encode_inputs_with_tokenizer(tokenizer, model_wrapper, samples, task, device
         yaw_seq = yaw_seq.unsqueeze(0)              # [1, 16, 1]
 
         with torch.no_grad():
-            start_token_seq, start_feature_seq = tokenizer.encode_to_z(img_seq)
-            start_token = start_token_seq
-            start_feature = tokenizer.vq_model.quantize.embedding(start_token)
+            start_token_seq, _ = tokenizer.encode_to_z(img_seq)
+            start_feature = tokenizer.vq_model.quantize.embedding(start_token_seq)
 
         posedrop_input_flag = torch.isinf(pose_seq[:, 0, 0])
 
         pose_indices = poses_to_indices(
             pose_seq,
             model_wrapper.pose_x_vocab_size,
-            model_wrapper.pose_y_vocab_size
+            model_wrapper.pose_y_vocab_size,
         )
         yaw_indices = yaws_to_indices(
             yaw_seq,
-            model_wrapper.yaw_vocab_size
+            model_wrapper.yaw_vocab_size,
         )
 
         cache_item = {
             "index": sample["index"] if "index" in sample else i,
-            "feature_total": start_feature.detach().cpu(),   # [1, 16, 512, 32]
+            "feature_total": start_feature.detach().cpu(),
             "pose_indices_total": pose_indices.detach().cpu(),
             "yaw_indices_total": yaw_indices.detach().cpu(),
             "drop_flag": posedrop_input_flag.detach().cpu(),
         }
 
-        # 标签也一起带着
+        # 保存标签
         if task == "physics":
-            cache_item["speed"] = float(sample["speed"])
-            cache_item["yaw_rate"] = float(sample["yaw_rate"])
-            cache_item["heading_change"] = float(sample["heading_change"])
+            for k in PHYSICS_LABEL_KEYS:
+                if k in sample:
+                    cache_item[k] = float(sample[k])
         elif task == "coherence":
             cache_item["coherence_label"] = int(sample["coherence_label"])
+
+        # 保存 meta
+        for k in META_KEYS:
+            if k in sample:
+                cache_item[k] = sample[k]
 
         cached_inputs.append(cache_item)
 
@@ -154,38 +182,51 @@ def encode_inputs_with_tokenizer(tokenizer, model_wrapper, samples, task, device
             print("yaw_indices_total shape =", tuple(cache_item["yaw_indices_total"].shape))
             print("drop_flag shape =", tuple(cache_item["drop_flag"].shape))
 
+            for k in PHYSICS_LABEL_KEYS:
+                if k in cache_item:
+                    print(f"{k} =", cache_item[k])
+
+            if "coherence_label" in cache_item:
+                print("coherence_label =", cache_item["coherence_label"])
+
+            for k in META_KEYS:
+                if k in cache_item:
+                    print(f"{k} =", cache_item[k])
+
     print("===== Stage A done =====\n")
     return cached_inputs
 
-def pool_hidden_state(hidden_item, effective_frames):
-    """
-    把单层 hidden 压成 [1536] 向量
 
-    当前策略：
-    - time_space_*: 只取最后一个时间步的前 3 个 token（yaw / pose_x / pose_y），再平均
-    - ar_*: 仍然取最后一个时间位置，再对全部 token 平均
+def pool_hidden_state(hidden_item, effective_frames, mode="all_mean"):
+    """
+    最简单公平版 pooling：
+    - 对所有层统一使用同一种规则
+    - 取最后一个时间步
+    - 对全部 token 做 mean pooling
+    输出 [D]
     """
     name = hidden_item["name"]
-    tensor = hidden_item["tensor"]  # cuda tensor
+    tensor = hidden_item["tensor"]
 
-    # time_space_*: [1, 15, 515, 1536]
+    # time_space_*: [1, T, N, D]
     if tensor.ndim == 4:
-        # 只取最后一个时间步
-        last_t = tensor[:, -1, :, :]          # [1, 515, 1536]
-
-        # 只读前 3 个结构化 token：yaw / pose_x / pose_y
-        pose_tokens = last_t[:, 0:3, :]       # [1, 3, 1536]
-
-        # 对这 3 个 token 平均，得到 [1, 1536]，再 squeeze
-        feat = pose_tokens.mean(dim=1).squeeze(0)   # [1536]
+        last_t = tensor[:, -1, :, :]   # [1, N, D]
+        if mode == "all_mean":
+            feat = last_t.mean(dim=1).squeeze(0)   # [D]
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
         return feat.detach().cpu()
 
-    # ar_*: [15, 515, 1536]
+    # ar_*: [T, N, D]
     elif tensor.ndim == 3:
         assert tensor.shape[0] == effective_frames, (
-            f"{name} first dim {tensor.shape[0]} != {effective_frames}"
+            f"{name}: first dim {tensor.shape[0]} != effective_frames {effective_frames}"
         )
-        feat = tensor[-1, :, :].mean(dim=0)   # [1536]
+        last_t = tensor[-1, :, :]      # [N, D]
+        if mode == "all_mean":
+            feat = last_t.mean(dim=0)  # [D]
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
         return feat.detach().cpu()
 
     else:
@@ -194,13 +235,14 @@ def pool_hidden_state(hidden_item, effective_frames):
 
 def extract_features_with_model(model_wrapper, cached_inputs, device, effective_frames):
     """
-    第二阶段：
+    Stage B:
     用 world model 提取 hidden states，并对每层做 pooling。
     """
     print("\n===== Stage B: extracting hidden states with world model =====")
 
     layer_feature_lists = {}
     labels = {}
+    meta = {}
 
     for i, item in enumerate(tqdm(cached_inputs)):
         feature_total = item["feature_total"].to(device)
@@ -213,7 +255,7 @@ def extract_features_with_model(model_wrapper, cached_inputs, device, effective_
                 feature_total=feature_total,
                 pose_indices_total=pose_indices_total,
                 yaw_indices_total=yaw_indices_total,
-                drop_flag=drop_flag
+                drop_flag=drop_flag,
             )
 
         hidden_states = out["hidden_states"]
@@ -224,45 +266,60 @@ def extract_features_with_model(model_wrapper, cached_inputs, device, effective_
             for h in hidden_states:
                 print(h["name"], tuple(h["tensor"].shape))
 
+        # 逐层 pooling
         for h in hidden_states:
             layer_name = h["name"]
-            feat = pool_hidden_state(h, effective_frames=effective_frames)  # [1536]
+            feat = pool_hidden_state(h, effective_frames=effective_frames, mode="all_mean")
 
             if layer_name not in layer_feature_lists:
                 layer_feature_lists[layer_name] = []
             layer_feature_lists[layer_name].append(feat)
 
-        # 保存标签
-        if "speed" in item:
-            labels.setdefault("speed", []).append(item["speed"])
-            labels.setdefault("yaw_rate", []).append(item["yaw_rate"])
-            labels.setdefault("heading_change", []).append(item["heading_change"])
+        # 保存 labels
+        for key in PHYSICS_LABEL_KEYS:
+            if key in item:
+                labels.setdefault(key, []).append(item[key])
 
         if "coherence_label" in item:
             labels.setdefault("coherence_label", []).append(item["coherence_label"])
-            
-        # 这一轮样本处理完后，再释放显存
+
+        # 保存 meta
+        for k in META_KEYS:
+            if k in item:
+                meta.setdefault(k, []).append(item[k])
+
+        # 释放显存
         del out
         del hidden_states
         del feature_total
         del pose_indices_total
         del yaw_indices_total
         del drop_flag
-        torch.cuda.empty_cache()
 
     # stack 成 tensor
     layer_features = {}
     for layer_name, feats in layer_feature_lists.items():
-        layer_features[layer_name] = torch.stack(feats, dim=0)  # [N, 1536]
+        layer_features[layer_name] = torch.stack(feats, dim=0)  # [N, D]
 
+    # labels 转 tensor
     for k, v in labels.items():
-        labels[k] = torch.tensor(v)
+        if k == "coherence_label":
+            labels[k] = torch.tensor(v, dtype=torch.long)
+        else:
+            labels[k] = torch.tensor(v, dtype=torch.float32)
+
+    # meta 转 tensor（如果是数值）
+    for k, v in meta.items():
+        if len(v) > 0 and isinstance(v[0], (int, float, np.integer, np.floating)):
+            meta[k] = torch.tensor(v)
+        else:
+            meta[k] = v
 
     print("===== Stage B done =====\n")
-    return layer_features, labels
+    return layer_features, labels, meta
 
 
-def save_feature_file(task, layer_features, labels):
+def save_feature_file(task, layer_features, labels, meta):
     if task == "physics":
         save_path = PHYSICS_FEATURES_SAVE_PATH
     elif task == "coherence":
@@ -272,18 +329,26 @@ def save_feature_file(task, layer_features, labels):
 
     out = {
         "task": task,
+        "feature_mode": "all_mean_last_t",
         "layer_features": layer_features,
         "labels": labels,
+        "meta": meta,
     }
 
     torch.save(out, save_path)
     print(f"Saved feature file to: {save_path}")
 
     print("\n===== saved feature summary =====")
+    print("feature_mode =", out["feature_mode"])
     for layer_name, feats in layer_features.items():
         print(layer_name, tuple(feats.shape))
     for label_name, label_tensor in labels.items():
         print(label_name, tuple(label_tensor.shape))
+    for meta_name, meta_value in meta.items():
+        if isinstance(meta_value, torch.Tensor):
+            print(meta_name, tuple(meta_value.shape))
+        else:
+            print(meta_name, f"list(len={len(meta_value)})")
     print("=================================\n")
 
 
@@ -320,10 +385,10 @@ def main():
     model = model.to(device)
     model.eval()
 
-    # effective_frames = condition_frames = 15
+    # 目前按 DrivingWorld 当前实现，AR hidden 的时间长度等于 condition_frames
     effective_frames = args.condition_frames
 
-    layer_features, labels = extract_features_with_model(
+    layer_features, labels, meta = extract_features_with_model(
         model_wrapper=model,
         cached_inputs=cached_inputs,
         device=device,
@@ -334,6 +399,7 @@ def main():
         task=TASK,
         layer_features=layer_features,
         labels=labels,
+        meta=meta,
     )
 
 
