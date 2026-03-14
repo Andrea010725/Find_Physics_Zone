@@ -5,14 +5,28 @@ import numpy as np
 from tqdm import tqdm
 import sys
 
-sys.path.append("/home/zhiwen/Find_Physics_Zone/")
+root_path = os.path.abspath(__file__)
+root_path = "/".join(root_path.split("/")[:-2])
+workspace_root = os.path.dirname(root_path)
+
+
+def resolve_repo_path(*parts):
+    local_path = os.path.join(root_path, *parts)
+    workspace_path = os.path.join(workspace_root, *parts)
+    if os.path.exists(local_path):
+        return local_path
+    return workspace_path
+
+
+data_root = resolve_repo_path("data")
+sys.path.append(root_path)
 from datasets.dataset_nuplan import NuPlanTest
 
 
 def safe_yaw_diff(yaw2, yaw1):
-    """Return wrapped yaw difference in [-pi, pi]."""
+    """Return wrapped yaw difference in [-180, 180] degrees."""
     diff = yaw2 - yaw1
-    return torch.atan2(torch.sin(diff), torch.cos(diff))
+    return torch.remainder(diff + 180.0, 360.0) - 180.0
 
 
 def compute_step_motion(poses, yaws, t, fps):
@@ -60,7 +74,7 @@ def compute_past_summary(poses, yaws, start, k, fps):
     }
 
 
-def future_turn_class(delta_yaw, thresh=0.03):
+def future_turn_class(delta_yaw, thresh=1.0):
     """
     0: left, 1: straight, 2: right
     """
@@ -162,9 +176,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_root", type=str, default="/home/zhiwen/DrivingWorld/data")
-    parser.add_argument("--json_root", type=str, default="/home/zhiwen/DrivingWorld/data")
-    parser.add_argument("--save_root", type=str, default="/home/zhiwen/DrivingWorld/data")
+    parser.add_argument("--data_root", type=str, default=data_root)
+    parser.add_argument("--json_root", type=str, default=data_root)
+    parser.add_argument("--save_root", type=str, default=data_root)
     parser.add_argument("--condition_frames", type=int, default=15)
     parser.add_argument("--future_horizon", type=int, default=1)
     parser.add_argument("--stride", type=int, default=1)

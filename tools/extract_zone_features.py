@@ -7,7 +7,19 @@ from tqdm import tqdm
 
 root_path = os.path.abspath(__file__)
 root_path = "/".join(root_path.split("/")[:-2])
+workspace_root = os.path.dirname(root_path)
 sys.path.append(root_path)
+
+
+def resolve_repo_path(*parts):
+    local_path = os.path.join(root_path, *parts)
+    workspace_path = os.path.join(workspace_root, *parts)
+    if os.path.exists(local_path):
+        return local_path
+    return workspace_path
+
+
+data_root = resolve_repo_path("data")
 
 from utils.config_utils import Config
 from utils.running import load_parameters
@@ -19,15 +31,15 @@ from modules.tokenizers.pose_tokenizer import poses_to_indices, yaws_to_indices
 # =========================
 # 路径和模式
 # =========================
-CONFIG_PATH = "/home/zhiwen/DrivingWorld/configs/drivingworld_v1/gen_videovq_conf_demo.py"
-LOAD_PATH = "/home/zhiwen/DrivingWorld/pretrained_models/world_model.pth"
-VQ_CKPT = "/home/zhiwen/DrivingWorld/pretrained_models/vqvae.pt"
+CONFIG_PATH = resolve_repo_path("configs", "drivingworld_v1", "gen_videovq_conf_demo.py")
+LOAD_PATH = resolve_repo_path("pretrained_models", "world_model.pth")
+VQ_CKPT = resolve_repo_path("pretrained_models", "vqvae.pt")
 
-PHYSICS_SAMPLES_PATH = "/home/zhiwen/DrivingWorld/data/physics_samples.pt"
-COHERENCE_SAMPLES_PATH = "/home/zhiwen/DrivingWorld/data/coherence_samples.pt"
+PHYSICS_SAMPLES_PATH = os.path.join(data_root, "physics_samples.pt")
+COHERENCE_SAMPLES_PATH = os.path.join(data_root, "coherence_samples.pt")
 
-PHYSICS_FEATURES_SAVE_PATH = "/home/zhiwen/DrivingWorld/data/physics_features.pt"
-COHERENCE_FEATURES_SAVE_PATH = "/home/zhiwen/DrivingWorld/data/coherence_features.pt"
+PHYSICS_FEATURES_SAVE_PATH = os.path.join(data_root, "physics_features.pt")
+COHERENCE_FEATURES_SAVE_PATH = os.path.join(data_root, "coherence_features.pt")
 
 # 改成 "physics" 或 "coherence"
 TASK = "coherence"
@@ -330,6 +342,10 @@ def save_feature_file(task, layer_features, labels, meta):
     out = {
         "task": task,
         "feature_mode": "all_mean_last_t",
+        "stage_semantics": {
+            "time_space": "Condition-only representation. Built from frames 0..T-1 before injecting next-state query tokens.",
+            "ar": "Teacher-forced next-state representation. Built after injecting next yaw/pose query and next-frame image-token prefix.",
+        },
         "layer_features": layer_features,
         "labels": labels,
         "meta": meta,

@@ -209,19 +209,25 @@ class TrainTransformers(nn.Module):
         predict_indices = rearrange(predict_indices, 'b (h w) -> b h w', h=self.latent_size[0], w=self.latent_size[1])
         return predict_indices
         
-    # add
     @torch.no_grad()
-    def extract_hidden_states(self, feature_total, pose_indices_total, yaw_indices_total, drop_flag):
-    	self.model.eval()
-    	out = self.model(
-        	feature_total,
-        	pose_indices_total,
-        	yaw_indices_total,
-        	drop_flag=drop_flag,
-        	return_hidden_states=True,
-        	return_logits=False,
-    	)
-    	return out
+    def extract_hidden_states(
+        self,
+        feature_total,
+        pose_indices_total,
+        yaw_indices_total,
+        drop_flag,
+        return_logits=False,
+    ):
+        self.model.eval()
+        out = self.model(
+            feature_total,
+            pose_indices_total,
+            yaw_indices_total,
+            drop_flag=drop_flag,
+            return_hidden_states=True,
+            return_logits=return_logits,
+        )
+        return out
     
     def save_model(self, path, epoch, rank=0):
         if rank == 0:

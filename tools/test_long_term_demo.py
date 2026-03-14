@@ -93,7 +93,6 @@ def test_sliding_window_img(val_data, model, args, tokenizer):
                         top_k = args.top_k,
                         temperature_p = args.temperature_p,
                         top_p = args.top_p)
-                x
                 predict_indices = rearrange(predict_indices, '(b F) h w -> b F h w', F=1)[:, -1:, ...]
                 condition_tokens = rearrange(start_token, 'b F (h w) -> b F h w', h=predict_indices.shape[-2])
                 sliding_window_tokens = rearrange(torch.cat([condition_tokens, predict_indices], dim=1), 'b F h w -> (b F) h w', F=condition_frames+1)

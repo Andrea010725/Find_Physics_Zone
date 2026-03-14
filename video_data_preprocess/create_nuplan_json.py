@@ -1,244 +1,216 @@
-import os
-import json
-import tqdm
 import argparse
-import numpy as np
-from scipy.spatial.transform import Rotation as R
+import json
+import os
+
+import tqdm
 from nuplan.database.nuplan_db_orm.nuplandb_wrapper import NuPlanDBWrapper
 
-ROOT = "/root" 
-#NUPLAN_DATA_ROOT = os.getenv('NUPLAN_DATA_ROOT', ROOT)
-#NUPLAN_MAPS_ROOT = os.getenv('NUPLAN_MAPS_ROOT', f'{ROOT}/maps')
-#NUPLAN_MAP_VERSION = os.getenv('NUPLAN_MAP_VERSION', 'nuplan-maps-v1.0')
-
-NUPLAN_DATA_ROOT = "/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini"
-NUPLAN_MAPS_ROOT = "/home/zhiwen/下载/nuplan-maps-v1.0/maps"
-NUPLAN_MAP_VERSION = "nuplan-maps-v1.0"
-
-#valid_trainvaltest_dbs = os.listdir(f'{ROOT}/nuplan-v1.1/sensor_blobs')
-#valid_trainvaltest_dbs = os.listdir("/media/zhiwen/UBUNTU 22_0/nuplan_extract/mini_sensors/nuplan-v1.1_mini_camera_0")
-valid_trainvaltest_dbs = [
-    "2021.05.12.22.28.35_veh-35_00620_01164"
-]
-valid_trainvaltest_dbs.sort()
 
 def add_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workers', default=2, type=int)
-    parser.add_argument('--split_id', default=0, type=int, help='minibatch size')
-    parser.add_argument('--split_num', default=1, type=int, help='minibatch size')
-    args = parser.parse_args()
-    return args
+    parser.add_argument("--workers", default=1, type=int)
+    parser.add_argument("--split_id", default=0, type=int)
+    parser.add_argument("--split_num", default=1, type=int)
+    parser.add_argument("--split_name", default="mini", choices=["mini", "trainval", "test"])
+    parser.add_argument("--nuplan_data_root", type=str, required=True)
+    parser.add_argument("--maps_root", type=str, required=True)
+    parser.add_argument("--map_version", type=str, default="nuplan-maps-v1.0")
+    parser.add_argument("--sensor_blobs_root", type=str, default=None)
+    parser.add_argument("--db_root", type=str, default=None)
+    parser.add_argument("--ego_save_dir", type=str, required=True)
+    parser.add_argument("--seq_save_dir", type=str, required=True)
+    parser.add_argument("--db_names", nargs="*", default=None)
+    return parser.parse_args()
 
-def load_single_log_db_data(log_db_name="2021.05.12.22.28.35_veh-35_00620_01164", log_db=None):
-    print('In load_single_log_db')
-    lidar_pcs = log_db.lidar_pc
+
+def resolve_sensor_blobs_root(args):
+    if args.sensor_blobs_root is not None:
+        return args.sensor_blobs_root
+
+    candidates = [
+        os.path.join(args.nuplan_data_root, "sensor_blobs"),
+        os.path.join(args.nuplan_data_root, "data", "sensor_blobs"),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    raise FileNotFoundError("Cannot resolve sensor_blobs_root from nuplan_data_root.")
+
+
+def resolve_db_root(args):
+    if args.db_root is not None:
+        return args.db_root
+
+    candidates = [
+        os.path.join(args.nuplan_data_root, "splits", args.split_name),
+        os.path.join(args.nuplan_data_root, "data", "splits", args.split_name),
+    ]
+    for candidate in candidates:
+        if os.path.isdir(candidate):
+            return candidate
+    raise FileNotFoundError("Cannot resolve db_root from nuplan_data_root.")
+
+
+def load_single_log_db_data(log_db_name, log_db, sensor_blobs_root):
+    print("In load_single_log_db")
     images_data = log_db.image
-    next_img_token = None
-   # img_root_path = f'{ROOT}/nuplan-v1.1/sensor_blobs/{log_db_name}'
-    img_root_path = f"/media/zhiwen/UBUNTU 22_0/nuplan_extract/mini_sensors/nuplan-v1.1_mini_camera_0/{log_db_name}"
-    cameras={
-        'CAM_L2':[],
-        'CAM_F0':[],
-        'CAM_R2':[],
-        'CAM_L0':[],
-        'CAM_L1':[],
-        'CAM_R0':[],
-        'CAM_R1':[],
-        'CAM_B0':[],
-        'data_root': img_root_path,
-        }
+    img_root_path = os.path.join(sensor_blobs_root, log_db_name)
+
+    cameras = {
+        "CAM_L2": [],
+        "CAM_F0": [],
+        "CAM_R2": [],
+        "CAM_L0": [],
+        "CAM_L1": [],
+        "CAM_R0": [],
+        "CAM_R1": [],
+        "CAM_B0": [],
+        "data_root": img_root_path,
+    }
     seq_tmp = []
 
     ego_pose = {
-        'CAM_L2':{},
-        'CAM_F0':{},
-        'CAM_R2':{},
-        'CAM_L0':{},
-        'CAM_L1':{},
-        'CAM_R0':{},
-        'CAM_R1':{},
-        'CAM_B0':{},
-    }
-
-    ego_pose_from_cam = {
-        'CAM_L2':{},
-        'CAM_F0':{},
-        'CAM_R2':{},
-        'CAM_L0':{},
-        'CAM_L1':{},
-        'CAM_R0':{},
-        'CAM_R1':{},
-        'CAM_B0':{},
+        "CAM_L2": {},
+        "CAM_F0": {},
+        "CAM_R2": {},
+        "CAM_L0": {},
+        "CAM_L1": {},
+        "CAM_R0": {},
+        "CAM_R1": {},
+        "CAM_B0": {},
     }
 
     pre_scene_token = None
     for idx, img_item in enumerate(images_data):
         camera_channel = img_item.camera.channel
-        camera_intrinsic = img_item.camera.intrinsic
         img_name = os.path.basename(img_item.filename_jpg)
-        loaded_db_name = img_item.filename_jpg.split('/')[0]
+        loaded_db_name = img_item.filename_jpg.split("/")[0]
         assert loaded_db_name == log_db_name
-        next_img_token = img_item.next_token
-        curr_img_token = img_item.token
+
         scene_token = img_item.lidar_pc.scene_token
-       # img_path = f'{log_db._data_root}/nuplan-v1.1/sensor_blobs/{img_item.filename_jpg}'
-        img_path = f"/media/zhiwen/UBUNTU 22_0/nuplan_extract/mini_sensors/nuplan-v1.1_mini_camera_0/{img_item.filename_jpg}"
+        img_path = os.path.join(sensor_blobs_root, img_item.filename_jpg)
         if not os.path.exists(img_path):
-            print(f'!!!!WARNING: {img_path} do not exist.')
+            print(f"!!!!WARNING: {img_path} does not exist.")
             continue
+
         curr_ego_pose = img_item.lidar_pc.ego_pose
-        curr_ego_pose_from_cam = img_item.ego_pose
-        ego_pose[camera_channel][f'{camera_channel}/{img_name}'] = {
-            'x':  curr_ego_pose.x,
-            'y':  curr_ego_pose.y,
-            'z':  curr_ego_pose.z,
-            'qw': curr_ego_pose.qw,
-            'qx': curr_ego_pose.qx,
-            'qy': curr_ego_pose.qy,
-            'qz': curr_ego_pose.qz,
-            'vx': curr_ego_pose.vx,
-            'vy': curr_ego_pose.vy,
-            'ax': curr_ego_pose.acceleration_x,
-            'ay': curr_ego_pose.acceleration_y,
-            'timestamp': curr_ego_pose.timestamp,
-        }
-        ego_pose_from_cam[camera_channel][f'{camera_channel}/{img_name}'] = {
-            'x':  curr_ego_pose_from_cam.x,
-            'y':  curr_ego_pose_from_cam.y,
-            'z':  curr_ego_pose_from_cam.z,
-            'qw': curr_ego_pose_from_cam.qw,
-            'qx': curr_ego_pose_from_cam.qx,
-            'qy': curr_ego_pose_from_cam.qy,
-            'qz': curr_ego_pose_from_cam.qz,
-            'vx': curr_ego_pose_from_cam.vx,
-            'vy': curr_ego_pose_from_cam.vy,
-            'ax': curr_ego_pose_from_cam.acceleration_x,
-            'ay': curr_ego_pose_from_cam.acceleration_y,
-            'timestamp': curr_ego_pose_from_cam.timestamp,
+        ego_pose[camera_channel][f"{camera_channel}/{img_name}"] = {
+            "x": curr_ego_pose.x,
+            "y": curr_ego_pose.y,
+            "z": curr_ego_pose.z,
+            "qw": curr_ego_pose.qw,
+            "qx": curr_ego_pose.qx,
+            "qy": curr_ego_pose.qy,
+            "qz": curr_ego_pose.qz,
+            "vx": curr_ego_pose.vx,
+            "vy": curr_ego_pose.vy,
+            "ax": curr_ego_pose.acceleration_x,
+            "ay": curr_ego_pose.acceleration_y,
+            "timestamp": curr_ego_pose.timestamp,
         }
 
+        if camera_channel != "CAM_F0":
+            continue
+
         if (scene_token != pre_scene_token) and (pre_scene_token is not None):
-            print(f'idx: {idx}, scene_token:{scene_token}, next_token:{next_img_token}, {camera_channel}, img_path:{img_item.filename_jpg}')
-            cameras[camera_channel].append({'seq': seq_tmp, 'scene': pre_scene_token})
-            seq_tmp = [img_name, ]
+            cameras["CAM_F0"].append({"seq": seq_tmp, "scene": pre_scene_token})
+            seq_tmp = [img_name]
         else:
             seq_tmp.append(img_name)
         pre_scene_token = scene_token
+
+    if seq_tmp:
+        cameras["CAM_F0"].append({"seq": seq_tmp, "scene": pre_scene_token})
+
     return cameras, ego_pose
 
-def loop_over_db_files(
-    rank=0,
-    workers=1,
-    split_db_list=None,
-    #ego_save_dir='',
-    ego_save_dir = "/media/zhiwen/UBUNTU 22_0/DrivingWorld_jsons/ego_meta",
-    #seq_save_dir='', nuplandb_wrapper=None):
-    seq_save_dir = "/media/zhiwen/UBUNTU 22_0/DrivingWorld_jsons/seq_meta", nuplandb_wrapper=None):
+
+def loop_over_db_files(split_db_list, sensor_blobs_root, ego_save_dir, seq_save_dir, nuplandb_wrapper):
     total_sequence = []
-    #sensor_data_db_list = os.listdir(f'{ROOT}/nuplan-v1.1/sensor_blobs')
-    sensor_data_db_list = os.listdir("/media/zhiwen/UBUNTU 22_0/nuplan_extract/mini_sensors/nuplan-v1.1_mini_camera_0")
-    sensor_data_db_list.sort()
-    print('In Loop over db.')
-    for idx, db_i in tqdm.tqdm(enumerate(split_db_list)):
-        print('id', idx)
-        if db_i not in sensor_data_db_list:
-            print(f"!!!! {db_i} donot exist in sensor data.")
+    sensor_data_db_list = sorted(os.listdir(sensor_blobs_root))
+    print("In Loop over db.")
+
+    for idx, db_name in tqdm.tqdm(enumerate(split_db_list), total=len(split_db_list)):
+        print("id", idx)
+        if db_name not in sensor_data_db_list:
+            print(f"!!!! {db_name} does not exist in sensor blobs.")
             continue
-        print(f">>>>Start {db_i}.")
-        log_db = nuplandb_wrapper.get_log_db(db_i)
-        print(log_db)
-        cameras, ego_pose = load_single_log_db_data(db_i, log_db)
-        scene_num = len(cameras['CAM_F0'])
+
+        print(f">>>>Start {db_name}.")
+        log_db = nuplandb_wrapper.get_log_db(db_name)
+        cameras, ego_pose = load_single_log_db_data(db_name, log_db, sensor_blobs_root)
+
+        scene_num = len(cameras["CAM_F0"])
+        db_sequences = []
         for i in range(scene_num):
             new_seq_meta = {
-                    'CAM_F0': cameras['CAM_F0'][i]['seq'],
-                    'scene': cameras['CAM_F0'][i]['scene'],
-                    'data_root': cameras['data_root'],
-                    'pose': f'ego_meta/{db_i}.json',
-                }
+                "CAM_F0": cameras["CAM_F0"][i]["seq"],
+                "scene": cameras["CAM_F0"][i]["scene"],
+                "data_root": cameras["data_root"],
+                "pose": f"ego_meta/{db_name}.json",
+            }
+            db_sequences.append(new_seq_meta)
             total_sequence.append(new_seq_meta)
-        ego_meta_path = os.path.join(ego_save_dir, db_i+'.json')
+
+        ego_meta_path = os.path.join(ego_save_dir, f"{db_name}.json")
         os.makedirs(os.path.dirname(ego_meta_path), exist_ok=True)
-        with open(ego_meta_path, 'w') as f:
+        with open(ego_meta_path, "w") as f:
             json.dump(ego_pose, f)
-        seq_meta_path = os.path.join(seq_save_dir, db_i+'.json')
+
+        seq_meta_path = os.path.join(seq_save_dir, f"{db_name}.json")
         os.makedirs(os.path.dirname(seq_meta_path), exist_ok=True)
-        with open(seq_meta_path, 'w') as f:
-            json.dump(total_sequence, f)
+        with open(seq_meta_path, "w") as f:
+            json.dump(db_sequences, f)
+
     return total_sequence
 
 
-def accumulate_results(all_results):
-    accumulated_results = []
-    for result in all_results:
-        accumulated_results.extend(result)
-    return accumulated_results
-
-if __name__ == '__main__':
+def main():
     args = add_arguments()
-    split_num = args.split_num
-    split_id = args.split_id
-    num_processes = args.workers
-    print('##############', split_id, split_num)
-    #split_name = 'trainval'
-    split_name = 'mini'
-    ego_save_dir = "/home/zhiwen/DrivingWorld/data/ego_meta"
-    seq_save_dir = "/home/zhiwen/DrivingWorld/data/seq_meta"
-    db_list = valid_trainvaltest_dbs
-    db_list.sort()
-    split_db_list = db_list[split_id::split_num]
-    print("valid_trainvaltest_dbs 前10个:", valid_trainvaltest_dbs[:10])
-    print("db_list 数量:", len(db_list))
-    print("split_db_list 前10个:", split_db_list[:10])
-    print("split_db_list 数量:", len(split_db_list))
-    #if split_name == 'trainval':
-        #split_db_list_update = [db_i for db_i in  split_db_list if os.path.exists(f'{ROOT}/nuplan-v1.1/splits/test/{db_i}.db')]
-        #db_path_lists = [f'{ROOT}/nuplan-v1.1/splits/trainval/{db_i}.db' for db_i in  split_db_list_update]
-    #elif split_name == 'test':
-        #split_db_list_update = [db_i for db_i in  split_db_list if os.path.exists(f'{ROOT}/nuplan-v1.1/splits/test/{db_i}.db')]
-        #db_path_lists = [f'{ROOT}/nuplan-v1.1/splits/test/{db_i}.db' for db_i in  split_db_list_update]
-        
-    if split_name == 'mini':
-    	split_db_list_update = [
-        	db_i for db_i in split_db_list
-        if os.path.exists(f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/mini/{db_i}.db")
-    	]
-    	db_path_lists = [
-        	f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/mini/{db_i}.db"
-        for db_i in split_db_list_update
+    sensor_blobs_root = resolve_sensor_blobs_root(args)
+    db_root = resolve_db_root(args)
+
+    if args.db_names:
+        db_list = sorted(args.db_names)
+    else:
+        db_list = sorted(
+            os.path.splitext(file_name)[0]
+            for file_name in os.listdir(db_root)
+            if file_name.endswith(".db")
+        )
+
+    split_db_list = db_list[args.split_id::args.split_num]
+    db_path_lists = [
+        os.path.join(db_root, f"{db_name}.db")
+        for db_name in split_db_list
+        if os.path.exists(os.path.join(db_root, f"{db_name}.db"))
     ]
-    elif split_name == 'trainval':
-    	split_db_list_update = [
-        	db_i for db_i in split_db_list
-        	if os.path.exists(f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/trainval/{db_i}.db")
-    	]
-    	db_path_lists = [
-        	f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/trainval/{db_i}.db"
-        for db_i in split_db_list_update
-    	]
-    elif split_name == 'test':
-    	split_db_list_update = [
-        	db_i for db_i in split_db_list
-        if os.path.exists(f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/test/{db_i}.db")
-    	]
-    	db_path_lists = [
-        	f"/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini/data/splits/test/{db_i}.db"
-        for db_i in split_db_list_update
+    split_db_list_update = [
+        os.path.splitext(os.path.basename(db_path))[0]
+        for db_path in db_path_lists
     ]
 
-    #nuplandb_wrapper = NuPlanDBWrapper(
-        #data_root=NUPLAN_DATA_ROOT,
-        #map_root=NUPLAN_MAPS_ROOT,
-        #db_files=db_path_lists,
-        #map_version=NUPLAN_MAP_VERSION,
-    #)
-    
+    print("sensor_blobs_root =", sensor_blobs_root)
+    print("db_root =", db_root)
+    print("num dbs =", len(db_list))
+    print("num selected dbs =", len(split_db_list_update))
+
     nuplandb_wrapper = NuPlanDBWrapper(
-    data_root="/home/zhiwen/DrivingWorld/data/nuplan-v1.1_mini",
-    map_root="/home/zhiwen/下载/nuplan-maps-v1.0/maps",
-    db_files=db_path_lists,
-    map_version="nuplan-maps-v1.0",
-)
-    print('Sart loop.')
-    accumulated_results = loop_over_db_files(0, 1, split_db_list_update, ego_save_dir=ego_save_dir, seq_save_dir=seq_save_dir, nuplandb_wrapper=nuplandb_wrapper)
+        data_root=args.nuplan_data_root,
+        map_root=args.maps_root,
+        db_files=db_path_lists,
+        map_version=args.map_version,
+    )
+
+    print("Start loop.")
+    loop_over_db_files(
+        split_db_list=split_db_list_update,
+        sensor_blobs_root=sensor_blobs_root,
+        ego_save_dir=args.ego_save_dir,
+        seq_save_dir=args.seq_save_dir,
+        nuplandb_wrapper=nuplandb_wrapper,
+    )
+
+
+if __name__ == "__main__":
+    main()

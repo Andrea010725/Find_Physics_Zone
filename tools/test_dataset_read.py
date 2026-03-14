@@ -1,11 +1,28 @@
+import os
 import sys
-sys.path.append("/home/zhiwen/DrivingWorld/")
-import torch
+
+root_path = os.path.abspath(__file__)
+root_path = "/".join(root_path.split("/")[:-2])
+workspace_root = os.path.dirname(root_path)
+
+
+def resolve_repo_path(*parts):
+    local_path = os.path.join(root_path, *parts)
+    workspace_path = os.path.join(workspace_root, *parts)
+    if os.path.exists(local_path):
+        return local_path
+    return workspace_path
+
+
+data_root = resolve_repo_path("data")
+sys.path.append(root_path)
+
 from datasets.dataset_nuplan import NuPlanTest
 
+
 dataset = NuPlanTest(
-    data_root="/",   # 因为你的 seq_meta 里 data_root 很可能已经是绝对路径
-    json_root="/home/zhiwen/DrivingWorld/data",
+    data_root=data_root,
+    json_root=data_root,
     condition_frames=3,
     downsample_fps=5,
     downsample_size=16,

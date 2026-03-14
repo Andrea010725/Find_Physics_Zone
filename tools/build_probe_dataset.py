@@ -5,6 +5,21 @@ import random
 import numpy as np
 from collections import defaultdict
 
+root_path = os.path.abspath(__file__)
+root_path = "/".join(root_path.split("/")[:-2])
+workspace_root = os.path.dirname(root_path)
+
+
+def resolve_repo_path(*parts):
+    local_path = os.path.join(root_path, *parts)
+    workspace_path = os.path.join(workspace_root, *parts)
+    if os.path.exists(local_path):
+        return local_path
+    return workspace_path
+
+
+data_root = resolve_repo_path("data")
+
 
 def sample_random_negative(i, samples, rng):
     j = rng.randrange(len(samples) - 1)
@@ -13,7 +28,7 @@ def sample_random_negative(i, samples, rng):
     return j
 
 
-def sample_hard_negative(i, samples, rng, heading_thresh=0.10, speed_thresh=0.50):
+def sample_hard_negative(i, samples, rng, heading_thresh=5.0, speed_thresh=0.50):
     target = samples[i]
     candidates = []
 
@@ -114,7 +129,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--save_root", type=str, default="/home/zhiwen/DrivingWorld/data")
+    parser.add_argument("--save_root", type=str, default=data_root)
     parser.add_argument("--seed", type=int, default=1234)
     args = parser.parse_args()
     main(args)
