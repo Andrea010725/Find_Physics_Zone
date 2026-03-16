@@ -1,3 +1,6 @@
+python3 create_nuplan_json.py
+先生成json
+
 A. 数据读取与样本构造相关   
 1. datasets/dataset_nuplan.py 
 是后面所有样本构造、特征提取，都必须从统一的数据入口读原始序列
