@@ -120,30 +120,18 @@ def main(args):
             past_end = start + k - 1
             future_t = past_end + h
 
-            past_imgs = imgs[start: start + k].clone()
-            past_poses = poses[start: start + k].clone()
-            past_yaws = yaws[start: start + k].clone()
-
-            future_img = imgs[future_t].clone()
-            future_pose = poses[future_t].clone()
-            future_yaw = yaws[future_t].clone()
-
             past_summary = compute_past_summary(poses, yaws, start, k, fps)
             future_motion = compute_step_motion(poses, yaws, future_t, fps)
 
             sample = {
+                "index": int(len(samples)),
+                "sample_format": "lightweight_v2",
                 "seq_id": int(seq_id),
                 "window_start": int(start),
                 "window_end": int(past_end),
                 "future_t": int(future_t),
-
-                "past_imgs": past_imgs,
-                "past_poses": past_poses,
-                "past_yaws": past_yaws,
-
-                "future_img": future_img,
-                "future_pose": future_pose,
-                "future_yaw": future_yaw,
+                "condition_frames": int(k),
+                "future_horizon": int(h),
 
                 # past-summary targets
                 **past_summary,
@@ -156,13 +144,33 @@ def main(args):
                 "future_yaw_rate": future_motion["yaw_rate"],
                 "future_turn_class": future_turn_class(future_motion["delta_yaw"]),
             }
+
+            if args.include_tensors:
+                sample.update({
+                    "past_imgs": imgs[start: start + k].clone(),
+                    "past_poses": poses[start: start + k].clone(),
+                    "past_yaws": yaws[start: start + k].clone(),
+                    "future_img": imgs[future_t].clone(),
+                    "future_pose": poses[future_t].clone(),
+                    "future_yaw": yaws[future_t].clone(),
+                })
             samples.append(sample)
 
     save_path = os.path.join(args.save_root, "physics_samples.pt")
-    torch.save(samples, save_path)
+    out = {
+        "sample_format": "lightweight_v2" if not args.include_tensors else "tensor_v1",
+        "condition_frames": int(k),
+        "future_horizon": int(h),
+        "downsample_fps": int(fps),
+        "num_sequences": int(len(dataset)),
+        "num_samples": int(len(samples)),
+        "samples": samples,
+    }
+    torch.save(out, save_path)
 
     print(f"saved to {save_path}")
     print(f"num samples = {len(samples)}")
+    print(f"sample_format = {out['sample_format']}")
 
     for key in [
         "past_avg_speed", "past_final_speed", "past_avg_yaw_rate",
@@ -186,5 +194,10 @@ if __name__ == "__main__":
     parser.add_argument("--downsample_size", type=int, default=16)
     parser.add_argument("--h", type=int, default=256)
     parser.add_argument("--w", type=int, default=512)
+    parser.add_argument(
+        "--include_tensors",
+        action="store_true",
+        help="Also save full image/pose/yaw tensors in each sample. This is very large and mainly for backward compatibility.",
+    )
     args = parser.parse_args()
     main(args)
