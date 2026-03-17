@@ -13,7 +13,7 @@ class Tokenizer(nn.Module):
         self.vq_model.to(local_rank)
         self.vq_model.eval()
         print("load from " + args.vq_ckpt)
-        checkpoint = torch.load(args.vq_ckpt, map_location="cpu")
+        checkpoint = torch.load(args.vq_ckpt, map_location="cpu", weights_only=False)
         self.vq_model.load_state_dict(checkpoint["model"], strict=True)
         del checkpoint
 
