@@ -348,6 +348,16 @@ def cast_feature_dtype(x, feature_dtype):
     raise ValueError(f"Unknown feature_dtype: {feature_dtype}")
 
 
+
+def build_raw_pose_yaw_baselines(pose_seq, yaw_seq):
+    # Keep a lightweight continuous-motion baseline outside the world model.
+    step_motion = torch.cat([pose_seq, yaw_seq], dim=1)
+    return {
+        "raw_pose_yaw_past": step_motion[:-1].reshape(-1).detach().cpu(),
+        "raw_pose_yaw_full": step_motion.reshape(-1).detach().cpu(),
+    }
+
+
 def extract_features_streaming(
     tokenizer,
     model_wrapper,
@@ -380,6 +390,7 @@ def extract_features_streaming(
 
     for i, sample in enumerate(tqdm(samples)):
         img_seq, pose_seq, yaw_seq = build_full_sequence(sample, task, sequence_provider)
+        raw_baselines = build_raw_pose_yaw_baselines(pose_seq, yaw_seq)
 
         img_seq = img_seq.unsqueeze(0).to(device)
         pose_seq = pose_seq.unsqueeze(0).to(device)
@@ -436,12 +447,25 @@ def extract_features_streaming(
             for k in META_KEYS:
                 if k in sample:
                     print(f"{k} =", sample[k])
+            print("raw baseline keys =", sorted(raw_baselines.keys()))
 
             print("\nFirst sample hidden info:")
             for h in hidden_states:
                 print(h["name"], tuple(h["tensor"].shape), h["tensor"].dtype)
 
             print("\npreallocating output tensors ...")
+            for layer_name, feat in raw_baselines.items():
+                feat = cast_feature_dtype(feat, feature_dtype)
+                layer_features[layer_name] = torch.empty(
+                    (total_samples,) + tuple(feat.shape),
+                    dtype=feat.dtype,
+                )
+                layer_features[layer_name][0] = feat
+                print(
+                    f"allocated {layer_name}: shape={tuple(layer_features[layer_name].shape)} "
+                    f"dtype={layer_features[layer_name].dtype}"
+                )
+
             for h in hidden_states:
                 layer_name = h["name"]
                 feat = pool_hidden_state(h, effective_frames=effective_frames, mode=pool_mode)
@@ -468,7 +492,10 @@ def extract_features_streaming(
             for k in META_KEYS:
                 if k in sample:
                     if isinstance(sample[k], (int, float, np.integer, np.floating)):
-                        meta[k] = torch.empty(total_samples, dtype=torch.long if isinstance(sample[k], (int, np.integer)) else torch.float32)
+                        meta[k] = torch.empty(
+                            total_samples,
+                            dtype=torch.long if isinstance(sample[k], (int, np.integer)) else torch.float32,
+                        )
                         meta[k][0] = sample[k]
                     else:
                         meta[k] = [None] * total_samples

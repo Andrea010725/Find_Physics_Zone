@@ -55,22 +55,29 @@ def precompute_arrays(samples):
     }
 
 
-def sample_hard_negative(i, arrays, rng, heading_thresh=5.0, speed_thresh=0.50):
+def sample_hard_negative(
+    i,
+    arrays,
+    rng,
+    past_heading_thresh=5.0,
+    speed_thresh=0.50,
+    future_yaw_thresh=0.10,
+):
     heading = arrays["past_heading_change"]
     speed = arrays["past_avg_speed"]
     future_yaw = arrays["future_delta_yaw"]
 
     mask = (
-        (np.abs(heading - heading[i]) < heading_thresh)
+        (np.abs(heading - heading[i]) < past_heading_thresh)
         & (np.abs(speed - speed[i]) < speed_thresh)
-        & (np.abs(future_yaw - future_yaw[i]) > heading_thresh)
+        & (np.abs(future_yaw - future_yaw[i]) > future_yaw_thresh)
     )
     mask[i] = False
     candidates = np.flatnonzero(mask)
 
     if candidates.size == 0:
-        return sample_random_negative(i, len(heading), rng)
-    return int(candidates[rng.randrange(candidates.size)])
+        return sample_random_negative(i, len(heading), rng), True
+    return int(candidates[rng.randrange(candidates.size)]), False
 
 
 def build_one_pair(base_index, cond_index, samples, label, neg_type):
@@ -117,14 +124,16 @@ def main(args):
         j_rand = sample_random_negative(i, num_samples, rng)
         out.append(build_one_pair(i, j_rand, samples, 0, "random_mismatch"))
 
-        j_hard = sample_hard_negative(
+        j_hard, hard_fallback = sample_hard_negative(
             i,
             arrays,
             rng,
-            heading_thresh=args.heading_thresh,
+            past_heading_thresh=args.heading_thresh,
             speed_thresh=args.speed_thresh,
+            future_yaw_thresh=args.future_yaw_thresh,
         )
-        out.append(build_one_pair(i, j_hard, samples, 0, "hard_mismatch"))
+        neg_type = "hard_mismatch_fallback_random" if hard_fallback else "hard_mismatch"
+        out.append(build_one_pair(i, j_hard, samples, 0, neg_type))
 
     save_path = os.path.join(args.save_root, "coherence_samples.pt")
     payload = {
@@ -168,5 +177,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--heading_thresh", type=float, default=5.0)
     parser.add_argument("--speed_thresh", type=float, default=0.50)
+    parser.add_argument("--future_yaw_thresh", type=float, default=0.10)
     args = parser.parse_args()
     main(args)
