@@ -100,18 +100,6 @@ def build_one_pair(base_index, cond_index, samples, label, neg_type):
         "abs_past_heading_gap": float(abs(cond_sample["past_heading_change"] - base_sample["past_heading_change"])),
         "abs_past_speed_gap": float(abs(cond_sample["past_avg_speed"] - base_sample["past_avg_speed"])),
     }
-
-    # Backward compatibility for older extraction code paths.
-    if "future_pose" in cond_sample:
-        pair["future_pose_cond"] = cond_sample["future_pose"].clone()
-    if "future_yaw" in cond_sample:
-        pair["future_yaw_cond"] = cond_sample["future_yaw"].clone()
-    if "past_imgs" in base_sample:
-        pair["past_imgs"] = base_sample["past_imgs"].clone()
-        pair["past_poses"] = base_sample["past_poses"].clone()
-        pair["past_yaws"] = base_sample["past_yaws"].clone()
-        pair["future_img"] = base_sample["future_img"].clone()
-
     return pair
 
 

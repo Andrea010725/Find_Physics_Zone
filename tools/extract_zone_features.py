@@ -2,6 +2,7 @@ import argparse
 import os
 import random
 import sys
+import time
 
 import numpy as np
 import torch
@@ -71,9 +72,25 @@ def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", type=str, choices=["physics", "coherence"], required=True)
     parser.add_argument("--device", type=str, default="cuda:0")
-    parser.add_argument("--pool_mode", type=str, default="all_mean")
+    parser.add_argument(
+        "--pool_mode",
+        type=str,
+        choices=["all_mean", "tokenwise"],
+        default="all_mean",
+        help="`all_mean` keeps the legacy pooled 1536-d feature; `tokenwise` keeps all last-t tokens as [L, C].",
+    )
     parser.add_argument("--data_root", type=str, default=data_root)
     parser.add_argument("--json_root", type=str, default=data_root)
+    parser.add_argument("--condition_frames", type=int, default=None)
+    parser.add_argument("--downsample_fps", type=int, default=5)
+    parser.add_argument("--downsample_size", type=int, default=None)
+    parser.add_argument("--max_cached_sequences", type=int, default=2)
+    parser.add_argument("--log_every", type=int, default=100)
+    parser.add_argument("--start_index", type=int, default=0)
+    parser.add_argument("--end_index", type=int, default=None)
+    parser.add_argument("--max_samples", type=int, default=None)
+    parser.add_argument("--output_path", type=str, default=None)
+    parser.add_argument("--feature_dtype", type=str, choices=["float32", "float16"], default="float32")
     return parser.parse_args()
 
 
@@ -82,10 +99,8 @@ def build_args():
     args.load_path = LOAD_PATH
     args.vq_ckpt = VQ_CKPT
     args.exp_name = "extract_zone_features"
-
     if not hasattr(args, "seed"):
         args.seed = 1234
-
     return args
 
 
@@ -98,7 +113,37 @@ def init_environment(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def load_probe_samples(task):
+def maybe_print_cuda_memory(device, prefix):
+    if device.type != "cuda":
+        return
+    allocated = torch.cuda.memory_allocated(device) / 1024 ** 3
+    reserved = torch.cuda.memory_reserved(device) / 1024 ** 3
+    print(f"{prefix} cuda_allocated={allocated:.2f}GB cuda_reserved={reserved:.2f}GB")
+
+
+def get_runtime_hparams(config_args, cli_args):
+    condition_frames = cli_args.condition_frames
+    if condition_frames is None:
+        condition_frames = getattr(config_args, "condition_frames", 15)
+
+    downsample_size = cli_args.downsample_size
+    if downsample_size is None:
+        downsample_size = getattr(config_args, "downsample_size", 16)
+
+    image_size = getattr(config_args, "image_size", [256, 512])
+    if len(image_size) != 2:
+        raise ValueError(f"Unexpected image_size in config: {image_size}")
+
+    return {
+        "condition_frames": int(condition_frames),
+        "downsample_fps": int(cli_args.downsample_fps),
+        "downsample_size": int(downsample_size),
+        "image_h": int(image_size[0]),
+        "image_w": int(image_size[1]),
+    }
+
+
+def load_probe_samples(task, start_index=0, end_index=None, max_samples=None):
     if task == "physics":
         path = PHYSICS_SAMPLES_PATH
     elif task == "coherence":
@@ -112,13 +157,32 @@ def load_probe_samples(task):
     if isinstance(payload, dict) and "samples" in payload:
         samples = payload["samples"]
         sample_format = payload.get("sample_format", "unknown")
+        print("probe payload keys =", sorted(payload.keys()))
     else:
         samples = payload
         sample_format = "legacy_tensor_list"
+        print("probe payload type = legacy list")
+
+    total_before_slice = len(samples)
+    start_index = int(start_index)
+    if end_index is None:
+        end_index = total_before_slice
+    end_index = int(min(end_index, total_before_slice))
+    if start_index < 0 or start_index > end_index:
+        raise ValueError(f"Invalid slice range: start_index={start_index}, end_index={end_index}")
+    samples = samples[start_index:end_index]
+    print(f"slice range = [{start_index}, {end_index}) -> {len(samples)} samples")
+
+    if max_samples is not None:
+        samples = samples[:max_samples]
+        end_index = start_index + len(samples)
+        print(f"max_samples active -> truncated to {len(samples)}")
 
     print(f"probe sample_format = {sample_format}")
     print(f"num samples = {len(samples)}")
-    return samples, sample_format
+    if len(samples) > 0:
+        print("first sample keys =", sorted(samples[0].keys()))
+    return samples, sample_format, start_index, end_index
 
 
 class SequenceProvider:
@@ -133,6 +197,7 @@ class SequenceProvider:
         w,
         max_cached_sequences=4,
     ):
+        print("initializing SequenceProvider ...")
         self.dataset = NuPlanTest(
             data_root=data_root,
             json_root=json_root,
@@ -145,6 +210,11 @@ class SequenceProvider:
         self.max_cached_sequences = max_cached_sequences
         self.cache = {}
         self.cache_order = []
+        print(
+            "SequenceProvider ready:",
+            f"dataset_len={len(self.dataset)}",
+            f"max_cached_sequences={self.max_cached_sequences}",
+        )
 
     def _touch(self, seq_id):
         if seq_id in self.cache_order:
@@ -240,76 +310,6 @@ def build_full_sequence(sample, task, sequence_provider):
     return img_seq, pose_seq, yaw_seq
 
 
-def encode_inputs_with_tokenizer(tokenizer, model_wrapper, samples, task, device, sequence_provider):
-    cached_inputs = []
-
-    print("\n===== Stage A: encoding samples with tokenizer =====")
-    for i, sample in enumerate(tqdm(samples)):
-        img_seq, pose_seq, yaw_seq = build_full_sequence(sample, task, sequence_provider)
-
-        img_seq = img_seq.unsqueeze(0).to(device)
-        pose_seq = pose_seq.unsqueeze(0)
-        yaw_seq = yaw_seq.unsqueeze(0)
-
-        with torch.no_grad():
-            start_token_seq, _ = tokenizer.encode_to_z(img_seq)
-            start_feature = tokenizer.vq_model.quantize.embedding(start_token_seq)
-
-        posedrop_input_flag = torch.isinf(pose_seq[:, 0, 0])
-
-        pose_indices = poses_to_indices(
-            pose_seq,
-            model_wrapper.pose_x_vocab_size,
-            model_wrapper.pose_y_vocab_size,
-        )
-        yaw_indices = yaws_to_indices(
-            yaw_seq,
-            model_wrapper.yaw_vocab_size,
-        )
-
-        cache_item = {
-            "index": sample["index"] if "index" in sample else i,
-            "feature_total": start_feature.detach().cpu(),
-            "pose_indices_total": pose_indices.detach().cpu(),
-            "yaw_indices_total": yaw_indices.detach().cpu(),
-            "drop_flag": posedrop_input_flag.detach().cpu(),
-        }
-
-        if task == "physics":
-            for k in PHYSICS_LABEL_KEYS:
-                if k in sample:
-                    cache_item[k] = float(sample[k])
-        elif task == "coherence":
-            cache_item["coherence_label"] = int(sample["coherence_label"])
-
-        for k in META_KEYS:
-            if k in sample:
-                cache_item[k] = sample[k]
-
-        cached_inputs.append(cache_item)
-
-        if i == 0:
-            print("\nFirst cached sample:")
-            print("feature_total shape =", tuple(cache_item["feature_total"].shape))
-            print("pose_indices_total shape =", tuple(cache_item["pose_indices_total"].shape))
-            print("yaw_indices_total shape =", tuple(cache_item["yaw_indices_total"].shape))
-            print("drop_flag shape =", tuple(cache_item["drop_flag"].shape))
-
-            for k in PHYSICS_LABEL_KEYS:
-                if k in cache_item:
-                    print(f"{k} =", cache_item[k])
-
-            if "coherence_label" in cache_item:
-                print("coherence_label =", cache_item["coherence_label"])
-
-            for k in META_KEYS:
-                if k in cache_item:
-                    print(f"{k} =", cache_item[k])
-
-    print("===== Stage A done =====\n")
-    return cached_inputs
-
-
 def pool_hidden_state(hidden_item, effective_frames, mode="all_mean"):
     name = hidden_item["name"]
     tensor = hidden_item["tensor"]
@@ -318,6 +318,8 @@ def pool_hidden_state(hidden_item, effective_frames, mode="all_mean"):
         last_t = tensor[:, -1, :, :]
         if mode == "all_mean":
             feat = last_t.mean(dim=1).squeeze(0)
+        elif mode == "tokenwise":
+            feat = last_t.squeeze(0)
         else:
             raise ValueError(f"Unknown mode: {mode}")
         return feat.detach().cpu()
@@ -329,6 +331,8 @@ def pool_hidden_state(hidden_item, effective_frames, mode="all_mean"):
         last_t = tensor[-1, :, :]
         if mode == "all_mean":
             feat = last_t.mean(dim=0)
+        elif mode == "tokenwise":
+            feat = last_t
         else:
             raise ValueError(f"Unknown mode: {mode}")
         return feat.detach().cpu()
@@ -336,18 +340,65 @@ def pool_hidden_state(hidden_item, effective_frames, mode="all_mean"):
     raise ValueError(f"Unexpected hidden tensor ndim for {name}: {tensor.ndim}")
 
 
-def extract_features_with_model(model_wrapper, cached_inputs, device, effective_frames, pool_mode):
-    print("\n===== Stage B: extracting hidden states with world model =====")
+def cast_feature_dtype(x, feature_dtype):
+    if feature_dtype == "float16":
+        return x.to(torch.float16)
+    if feature_dtype == "float32":
+        return x.to(torch.float32)
+    raise ValueError(f"Unknown feature_dtype: {feature_dtype}")
 
-    layer_feature_lists = {}
+
+def extract_features_streaming(
+    tokenizer,
+    model_wrapper,
+    samples,
+    task,
+    device,
+    effective_frames,
+    pool_mode,
+    sequence_provider,
+    log_every,
+    feature_dtype,
+):
+    print("\n===== streaming feature extraction =====")
+    print(
+        "settings:",
+        f"task={task}",
+        f"pool_mode={pool_mode}",
+        f"feature_dtype={feature_dtype}",
+        f"effective_frames={effective_frames}",
+        f"log_every={log_every}",
+    )
+
+    layer_features = {}
     labels = {}
     meta = {}
 
-    for i, item in enumerate(tqdm(cached_inputs)):
-        feature_total = item["feature_total"].to(device)
-        pose_indices_total = item["pose_indices_total"].to(device)
-        yaw_indices_total = item["yaw_indices_total"].to(device)
-        drop_flag = item["drop_flag"].to(device)
+    total_samples = len(samples)
+    start_time = time.time()
+    last_log_time = start_time
+
+    for i, sample in enumerate(tqdm(samples)):
+        img_seq, pose_seq, yaw_seq = build_full_sequence(sample, task, sequence_provider)
+
+        img_seq = img_seq.unsqueeze(0).to(device)
+        pose_seq = pose_seq.unsqueeze(0).to(device)
+        yaw_seq = yaw_seq.unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            start_token_seq, _ = tokenizer.encode_to_z(img_seq)
+            feature_total = tokenizer.vq_model.quantize.embedding(start_token_seq)
+
+        drop_flag = torch.isinf(pose_seq[:, 0, 0])
+        pose_indices_total = poses_to_indices(
+            pose_seq,
+            model_wrapper.pose_x_vocab_size,
+            model_wrapper.pose_y_vocab_size,
+        )
+        yaw_indices_total = yaws_to_indices(
+            yaw_seq,
+            model_wrapper.yaw_vocab_size,
+        )
 
         with torch.no_grad():
             out = model_wrapper.extract_hidden_states(
@@ -357,73 +408,163 @@ def extract_features_with_model(model_wrapper, cached_inputs, device, effective_
                 drop_flag=drop_flag,
             )
 
-        hidden_states = out["hidden_states"]
+        hidden_states = [
+            {
+                "name": "tokenizer_last",
+                "stage": "tokenizer",
+                "layer_idx": 0,
+                "tensor": feature_total[:, :-1, ...].contiguous(),
+            }
+        ] + out["hidden_states"]
 
         if i == 0:
-            print("\nFirst sample hidden info:")
+            print("\nFirst sample info:")
+            print("feature_total shape =", tuple(feature_total.shape))
+            print("feature_total dtype =", feature_total.dtype)
+            print("pose_indices_total shape =", tuple(pose_indices_total.shape))
+            print("yaw_indices_total shape =", tuple(yaw_indices_total.shape))
+            print("drop_flag shape =", tuple(drop_flag.shape))
+            print("img_seq shape =", tuple(img_seq.shape))
+            print("pose_seq shape =", tuple(pose_seq.shape))
+            print("yaw_seq shape =", tuple(yaw_seq.shape))
             print("num hidden states =", len(hidden_states))
+            for k in PHYSICS_LABEL_KEYS:
+                if k in sample:
+                    print(f"{k} =", sample[k])
+            if "coherence_label" in sample:
+                print("coherence_label =", sample["coherence_label"])
+            for k in META_KEYS:
+                if k in sample:
+                    print(f"{k} =", sample[k])
+
+            print("\nFirst sample hidden info:")
             for h in hidden_states:
-                print(h["name"], tuple(h["tensor"].shape))
+                print(h["name"], tuple(h["tensor"].shape), h["tensor"].dtype)
 
-        for h in hidden_states:
-            layer_name = h["name"]
-            feat = pool_hidden_state(h, effective_frames=effective_frames, mode=pool_mode)
+            print("\npreallocating output tensors ...")
+            for h in hidden_states:
+                layer_name = h["name"]
+                feat = pool_hidden_state(h, effective_frames=effective_frames, mode=pool_mode)
+                feat = cast_feature_dtype(feat, feature_dtype)
+                layer_features[layer_name] = torch.empty(
+                    (total_samples,) + tuple(feat.shape),
+                    dtype=feat.dtype,
+                )
+                layer_features[layer_name][0] = feat
+                print(
+                    f"allocated {layer_name}: shape={tuple(layer_features[layer_name].shape)} "
+                    f"dtype={layer_features[layer_name].dtype}"
+                )
 
-            if layer_name not in layer_feature_lists:
-                layer_feature_lists[layer_name] = []
-            layer_feature_lists[layer_name].append(feat)
+            for key in PHYSICS_LABEL_KEYS:
+                if key in sample:
+                    labels[key] = torch.empty(total_samples, dtype=torch.float32)
+                    labels[key][0] = float(sample[key])
 
-        for key in PHYSICS_LABEL_KEYS:
-            if key in item:
-                labels.setdefault(key, []).append(item[key])
+            if "coherence_label" in sample:
+                labels["coherence_label"] = torch.empty(total_samples, dtype=torch.long)
+                labels["coherence_label"][0] = int(sample["coherence_label"])
 
-        if "coherence_label" in item:
-            labels.setdefault("coherence_label", []).append(item["coherence_label"])
+            for k in META_KEYS:
+                if k in sample:
+                    if isinstance(sample[k], (int, float, np.integer, np.floating)):
+                        meta[k] = torch.empty(total_samples, dtype=torch.long if isinstance(sample[k], (int, np.integer)) else torch.float32)
+                        meta[k][0] = sample[k]
+                    else:
+                        meta[k] = [None] * total_samples
+                        meta[k][0] = sample[k]
 
-        for k in META_KEYS:
-            if k in item:
-                meta.setdefault(k, []).append(item[k])
+        if i != 0:
+            for h in hidden_states:
+                layer_name = h["name"]
+                feat = pool_hidden_state(h, effective_frames=effective_frames, mode=pool_mode)
+                feat = cast_feature_dtype(feat, feature_dtype)
+                layer_features[layer_name][i] = feat
+
+            for key in PHYSICS_LABEL_KEYS:
+                if key in sample:
+                    labels[key][i] = float(sample[key])
+
+            if "coherence_label" in sample:
+                labels["coherence_label"][i] = int(sample["coherence_label"])
+
+            for k in META_KEYS:
+                if k in sample:
+                    if isinstance(meta[k], torch.Tensor):
+                        meta[k][i] = sample[k]
+                    else:
+                        meta[k][i] = sample[k]
+
+        should_log = (
+            i == 0
+            or (i + 1) % log_every == 0
+            or (i + 1) == total_samples
+        )
+        if should_log:
+            now = time.time()
+            elapsed = now - start_time
+            step_elapsed = now - last_log_time
+            avg_per_sample = elapsed / (i + 1)
+            remaining = (total_samples - (i + 1)) * avg_per_sample
+            print(
+                f"[progress] processed={i + 1}/{total_samples} "
+                f"elapsed={elapsed / 60:.2f}min "
+                f"since_last_log={step_elapsed:.2f}s "
+                f"avg_per_sample={avg_per_sample:.4f}s "
+                f"eta={remaining / 60:.2f}min"
+            )
+            if len(layer_features) > 0:
+                first_layer_name = sorted(layer_features.keys())[0]
+                print(
+                    f"[progress] first_layer={first_layer_name} "
+                    f"stored_vectors={i + 1}"
+                )
+            maybe_print_cuda_memory(device, prefix="[progress]")
+            last_log_time = now
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
 
         del out
         del hidden_states
+        del img_seq
+        del pose_seq
+        del yaw_seq
         del feature_total
         del pose_indices_total
         del yaw_indices_total
         del drop_flag
 
-    layer_features = {}
-    for layer_name, feats in layer_feature_lists.items():
-        layer_features[layer_name] = torch.stack(feats, dim=0)
+    print("\nfinal output tensor summary ...")
+    for layer_name, feats in layer_features.items():
+        print(f"stacked {layer_name}: shape={tuple(feats.shape)} dtype={feats.dtype}")
 
+    print("\nlabels/meta summary ...")
     for k, v in labels.items():
-        if k == "coherence_label":
-            labels[k] = torch.tensor(v, dtype=torch.long)
-        else:
-            labels[k] = torch.tensor(v, dtype=torch.float32)
+        print(f"label {k}: shape={tuple(v.shape)} dtype={v.dtype}")
 
     for k, v in meta.items():
-        if len(v) > 0 and isinstance(v[0], (int, float, np.integer, np.floating)):
-            meta[k] = torch.tensor(v)
+        if isinstance(v, torch.Tensor):
+            print(f"meta {k}: shape={tuple(v.shape)} dtype={v.dtype}")
         else:
-            meta[k] = v
+            print(f"meta {k}: list(len={len(v)})")
 
-    print("===== Stage B done =====\n")
+    print("===== streaming extraction done =====\n")
     return layer_features, labels, meta
 
 
-def save_feature_file(task, layer_features, labels, meta, pool_mode, sample_format):
-    if task == "physics":
-        save_path = PHYSICS_FEATURES_SAVE_PATH
-    elif task == "coherence":
-        save_path = COHERENCE_FEATURES_SAVE_PATH
-    else:
-        raise ValueError(f"Unknown task: {task}")
-
+def save_feature_file(task, layer_features, labels, meta, pool_mode, sample_format, feature_dtype, save_path, start_index, end_index):
     out = {
         "task": task,
         "feature_mode": f"{pool_mode}_last_t",
+        "feature_dtype": feature_dtype,
         "probe_sample_format": sample_format,
+        "slice_range": {
+            "start_index": int(start_index),
+            "end_index": int(end_index),
+        },
         "stage_semantics": {
+            "tokenizer_last": "Tokenizer/VQ feature embedding before world-model multimodal projection. Uses the last observed condition-frame image tokens.",
+            "next_state_hidden": "State after injecting next-state query tokens and image prefix, before the first autoregressive block.",
             "time_space": "Condition-only representation. Built from frames 0..T-1 before injecting next-state query tokens.",
             "ar": "Teacher-forced next-state representation. Built after injecting next yaw/pose query and next-frame image-token prefix.",
         },
@@ -432,19 +573,23 @@ def save_feature_file(task, layer_features, labels, meta, pool_mode, sample_form
         "meta": meta,
     }
 
+    save_dir = os.path.dirname(save_path)
+    if save_dir:
+        os.makedirs(save_dir, exist_ok=True)
     torch.save(out, save_path)
     print(f"Saved feature file to: {save_path}")
 
     print("\n===== saved feature summary =====")
     print("feature_mode =", out["feature_mode"])
+    print("feature_dtype =", out["feature_dtype"])
     print("probe_sample_format =", out["probe_sample_format"])
     for layer_name, feats in layer_features.items():
-        print(layer_name, tuple(feats.shape))
+        print(layer_name, tuple(feats.shape), feats.dtype)
     for label_name, label_tensor in labels.items():
-        print(label_name, tuple(label_tensor.shape))
+        print(label_name, tuple(label_tensor.shape), label_tensor.dtype)
     for meta_name, meta_value in meta.items():
         if isinstance(meta_value, torch.Tensor):
-            print(meta_name, tuple(meta_value.shape))
+            print(meta_name, tuple(meta_value.shape), meta_value.dtype)
         else:
             print(meta_name, f"list(len={len(meta_value)})")
     print("=================================\n")
@@ -454,59 +599,90 @@ def main():
     cli_args = parse_cli_args()
     args = build_args()
     init_environment(args.seed)
+    runtime_hparams = get_runtime_hparams(args, cli_args)
 
     device = torch.device(cli_args.device)
 
-    print("loading world model on CPU...")
-    model = TrainTransformers(args, local_rank=0, condition_frames=args.condition_frames)
+    print("===== extract_zone_features config =====")
+    print("task =", cli_args.task)
+    print("device =", device)
+    print("pool_mode =", cli_args.pool_mode)
+    print("data_root =", cli_args.data_root)
+    print("json_root =", cli_args.json_root)
+    print("log_every =", cli_args.log_every)
+    print("start_index =", cli_args.start_index)
+    print("end_index =", cli_args.end_index)
+    print("max_samples =", cli_args.max_samples)
+    print("output_path =", cli_args.output_path)
+    print("feature_dtype =", cli_args.feature_dtype)
+    print("max_cached_sequences =", cli_args.max_cached_sequences)
+    print("CONFIG_PATH =", CONFIG_PATH)
+    print("LOAD_PATH =", LOAD_PATH)
+    print("VQ_CKPT =", VQ_CKPT)
+    print("condition_frames =", runtime_hparams["condition_frames"])
+    print("downsample_fps =", runtime_hparams["downsample_fps"])
+    print("image_size =", [runtime_hparams["image_h"], runtime_hparams["image_w"]])
+    print("downsample_size =", runtime_hparams["downsample_size"])
+    print("========================================")
+
+    print("loading world model ...")
+    model = TrainTransformers(args, local_rank=0, condition_frames=runtime_hparams["condition_frames"])
     checkpoint = torch.load(args.load_path, map_location="cpu")
     model.model = load_parameters(model.model, checkpoint)
+    del checkpoint
+    model = model.to(device)
     model.eval()
+    maybe_print_cuda_memory(device, prefix="[after world model load]")
 
-    samples, sample_format = load_probe_samples(cli_args.task)
+    samples, sample_format, start_index, end_index = load_probe_samples(
+        cli_args.task,
+        start_index=cli_args.start_index,
+        end_index=cli_args.end_index,
+        max_samples=cli_args.max_samples,
+    )
 
     sequence_provider = None
     if sample_format != "legacy_tensor_list":
-        print("initializing lazy sequence provider for lightweight samples...")
         sequence_provider = SequenceProvider(
             data_root=cli_args.data_root,
             json_root=cli_args.json_root,
-            condition_frames=args.condition_frames,
-            downsample_fps=args.downsample_fps,
-            downsample_size=args.downsample_size,
-            h=args.image_size[0],
-            w=args.image_size[1],
+            condition_frames=runtime_hparams["condition_frames"],
+            downsample_fps=runtime_hparams["downsample_fps"],
+            downsample_size=runtime_hparams["downsample_size"],
+            h=runtime_hparams["image_h"],
+            w=runtime_hparams["image_w"],
+            max_cached_sequences=cli_args.max_cached_sequences,
         )
+    else:
+        print("legacy_tensor_list detected: sample already carries image/pose/yaw tensors.")
 
-    print("loading tokenizer on GPU...")
+    print("loading tokenizer ...")
     tokenizer = Tokenizer(args, local_rank=device)
+    maybe_print_cuda_memory(device, prefix="[after tokenizer load]")
 
-    cached_inputs = encode_inputs_with_tokenizer(
+    effective_frames = runtime_hparams["condition_frames"]
+    layer_features, labels, meta = extract_features_streaming(
         tokenizer=tokenizer,
         model_wrapper=model,
         samples=samples,
         task=cli_args.task,
         device=device,
-        sequence_provider=sequence_provider,
-    )
-
-    print("releasing tokenizer GPU memory...")
-    del tokenizer
-    torch.cuda.empty_cache()
-
-    print("moving world model to GPU...")
-    model = model.to(device)
-    model.eval()
-
-    effective_frames = args.condition_frames
-
-    layer_features, labels, meta = extract_features_with_model(
-        model_wrapper=model,
-        cached_inputs=cached_inputs,
-        device=device,
         effective_frames=effective_frames,
         pool_mode=cli_args.pool_mode,
+        sequence_provider=sequence_provider,
+        log_every=cli_args.log_every,
+        feature_dtype=cli_args.feature_dtype,
     )
+
+    if cli_args.output_path is None:
+        if cli_args.task == "physics":
+            save_path = PHYSICS_FEATURES_SAVE_PATH
+        elif cli_args.task == "coherence":
+            save_path = COHERENCE_FEATURES_SAVE_PATH
+        else:
+            raise ValueError(f"Unknown task: {cli_args.task}")
+    else:
+        save_path = cli_args.output_path
 
     save_feature_file(
         task=cli_args.task,
@@ -515,6 +691,10 @@ def main():
         meta=meta,
         pool_mode=cli_args.pool_mode,
         sample_format=sample_format,
+        feature_dtype=cli_args.feature_dtype,
+        save_path=save_path,
+        start_index=start_index,
+        end_index=end_index,
     )
 
 

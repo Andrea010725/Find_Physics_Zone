@@ -454,6 +454,16 @@ class GPT(nn.Module):
                 intra_query_embeddings + auto_regressive_token_embeddings
         )
 
+        if return_hidden_states:
+            hidden_states.append(
+                {
+                    "name": "next_state_hidden",
+                    "stage": "next_state",
+                    "layer_idx": 0,
+                    "tensor": auto_regressive_token_embeddings.contiguous(),
+                }
+            )
+
         for i in range(self.auto_regressive_num):
             auto_regressive_token_embeddings = self.causal_space_blocks[i](
                 auto_regressive_token_embeddings, mask_ar_curr
