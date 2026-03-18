@@ -1,0 +1,262 @@
+Loading feature file from: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_features.pt
+num samples = 12763
+num groups = 159
+feature_mode = all_mean_last_t
+target stats:
+  past_avg_speed: mean=0.082462, std=0.098000, min=0.000131, max=1.268416
+  past_avg_yaw_rate: mean=-0.001926, std=0.164635, min=-1.933490, max=1.825202
+  past_heading_change: mean=-0.005393, std=0.460978, min=-5.413803, max=5.110596
+  future_speed: mean=0.077700, std=0.097861, min=0.000002, max=1.347859
+  future_yaw_rate: mean=-0.002715, std=0.338762, min=-4.005127, max=5.209656
+  future_delta_yaw: mean=-0.000543, std=0.067752, min=-0.801025, max=1.041931
+
+===== training physics probes (GroupKFold by seq_id) =====
+
+--- target: past_avg_speed ---
+ar_0            | mse=0.010263 | r2=-0.068568 | pearson=0.439981
+ar_1            | mse=0.009802 | r2=-0.020660 | pearson=0.437412
+ar_2            | mse=0.010381 | r2=-0.080931 | pearson=0.414327
+ar_3            | mse=0.009677 | r2=-0.007594 | pearson=0.442420
+ar_4            | mse=0.009873 | r2=-0.027974 | pearson=0.423212
+ar_5            | mse=0.009310 | r2=0.030606 | pearson=0.458775
+time_space_0    | mse=0.004845 | r2=0.495493 | pearson=0.744618
+time_space_1    | mse=0.007342 | r2=0.235498 | pearson=0.636365
+time_space_10   | mse=0.010553 | r2=-0.098849 | pearson=0.442753
+time_space_11   | mse=0.010242 | r2=-0.066462 | pearson=0.431431
+time_space_2    | mse=0.009075 | r2=0.055120 | pearson=0.548900
+time_space_3    | mse=0.012335 | r2=-0.284380 | pearson=0.440657
+time_space_4    | mse=0.014555 | r2=-0.515508 | pearson=0.392876
+time_space_5    | mse=0.018239 | r2=-0.899059 | pearson=0.313779
+time_space_6    | mse=0.014695 | r2=-0.530140 | pearson=0.367961
+time_space_7    | mse=0.012433 | r2=-0.294583 | pearson=0.400935
+time_space_8    | mse=0.011508 | r2=-0.198234 | pearson=0.416900
+time_space_9    | mse=0.011606 | r2=-0.208423 | pearson=0.407748
+
+--- target: past_avg_yaw_rate ---
+ar_0            | mse=0.028095 | r2=-0.036524 | pearson=0.491317
+ar_1            | mse=0.027051 | r2=0.001987 | pearson=0.483916
+ar_2            | mse=0.028363 | r2=-0.046435 | pearson=0.463481
+ar_3            | mse=0.029808 | r2=-0.099732 | pearson=0.419807
+ar_4            | mse=0.028337 | r2=-0.045478 | pearson=0.444989
+ar_5            | mse=0.030109 | r2=-0.110841 | pearson=0.420816
+time_space_0    | mse=0.018327 | r2=0.323832 | pearson=0.642817
+time_space_1    | mse=0.018215 | r2=0.327965 | pearson=0.649107
+time_space_10   | mse=0.027709 | r2=-0.022309 | pearson=0.501011
+time_space_11   | mse=0.029099 | r2=-0.073578 | pearson=0.480588
+time_space_2    | mse=0.027503 | r2=-0.014707 | pearson=0.518195
+time_space_3    | mse=0.033291 | r2=-0.228255 | pearson=0.453082
+time_space_4    | mse=0.029188 | r2=-0.076874 | pearson=0.512955
+time_space_5    | mse=0.044713 | r2=-0.649657 | pearson=0.386474
+time_space_6    | mse=0.038135 | r2=-0.406966 | pearson=0.414753
+time_space_7    | mse=0.034334 | r2=-0.266702 | pearson=0.448487
+time_space_8    | mse=0.031239 | r2=-0.152538 | pearson=0.493940
+time_space_9    | mse=0.028611 | r2=-0.055568 | pearson=0.487830
+
+--- target: past_heading_change ---
+ar_0            | mse=0.220262 | r2=-0.036522 | pearson=0.491316
+ar_1            | mse=0.212078 | r2=0.001988 | pearson=0.483917
+ar_2            | mse=0.222367 | r2=-0.046430 | pearson=0.463484
+ar_3            | mse=0.233692 | r2=-0.099723 | pearson=0.419811
+ar_4            | mse=0.222163 | r2=-0.045470 | pearson=0.444993
+ar_5            | mse=0.236054 | r2=-0.110841 | pearson=0.420817
+time_space_0    | mse=0.143686 | r2=0.323835 | pearson=0.642820
+time_space_1    | mse=0.142809 | r2=0.327960 | pearson=0.649107
+time_space_10   | mse=0.217242 | r2=-0.022311 | pearson=0.501012
+time_space_11   | mse=0.228135 | r2=-0.073574 | pearson=0.480590
+time_space_2    | mse=0.215624 | r2=-0.014696 | pearson=0.518198
+time_space_3    | mse=0.261000 | r2=-0.228233 | pearson=0.453089
+time_space_4    | mse=0.228837 | r2=-0.076875 | pearson=0.512956
+time_space_5    | mse=0.350554 | r2=-0.649661 | pearson=0.386473
+time_space_6    | mse=0.298983 | r2=-0.406976 | pearson=0.414750
+time_space_7    | mse=0.269177 | r2=-0.266714 | pearson=0.448486
+time_space_8    | mse=0.244917 | r2=-0.152547 | pearson=0.493937
+time_space_9    | mse=0.224309 | r2=-0.055567 | pearson=0.487831
+
+--- target: future_speed ---
+ar_0            | mse=0.009387 | r2=0.019831 | pearson=0.484903
+ar_1            | mse=0.009371 | r2=0.021444 | pearson=0.493163
+ar_2            | mse=0.009513 | r2=0.006633 | pearson=0.467770
+ar_3            | mse=0.009290 | r2=0.029990 | pearson=0.467174
+ar_4            | mse=0.008796 | r2=0.081585 | pearson=0.490467
+ar_5            | mse=0.008935 | r2=0.067025 | pearson=0.478805
+time_space_0    | mse=0.007407 | r2=0.226606 | pearson=0.562860
+time_space_1    | mse=0.008033 | r2=0.161231 | pearson=0.543908
+time_space_10   | mse=0.009282 | r2=0.030822 | pearson=0.486421
+time_space_11   | mse=0.010072 | r2=-0.051713 | pearson=0.453182
+time_space_2    | mse=0.009337 | r2=0.025079 | pearson=0.509563
+time_space_3    | mse=0.010038 | r2=-0.048123 | pearson=0.476629
+time_space_4    | mse=0.011448 | r2=-0.195431 | pearson=0.439935
+time_space_5    | mse=0.014492 | r2=-0.513208 | pearson=0.371220
+time_space_6    | mse=0.011248 | r2=-0.174544 | pearson=0.447819
+time_space_7    | mse=0.011131 | r2=-0.162272 | pearson=0.431305
+time_space_8    | mse=0.010251 | r2=-0.070388 | pearson=0.468903
+time_space_9    | mse=0.010886 | r2=-0.136679 | pearson=0.454269
+
+--- target: future_yaw_rate ---
+ar_0            | mse=0.121748 | r2=-0.060891 | pearson=0.478391
+ar_1            | mse=0.113824 | r2=0.008160 | pearson=0.492812
+ar_2            | mse=0.111783 | r2=0.025940 | pearson=0.484189
+ar_3            | mse=0.117507 | r2=-0.023937 | pearson=0.463738
+ar_4            | mse=0.112016 | r2=0.023913 | pearson=0.469102
+ar_5            | mse=0.119860 | r2=-0.044440 | pearson=0.452842
+time_space_0    | mse=0.140009 | r2=-0.220017 | pearson=0.343785
+time_space_1    | mse=0.129394 | r2=-0.127515 | pearson=0.407876
+time_space_10   | mse=0.132446 | r2=-0.154113 | pearson=0.412545
+time_space_11   | mse=0.136180 | r2=-0.186650 | pearson=0.352611
+time_space_2    | mse=0.125590 | r2=-0.094368 | pearson=0.448538
+time_space_3    | mse=0.131218 | r2=-0.143415 | pearson=0.461216
+time_space_4    | mse=0.172954 | r2=-0.507089 | pearson=0.402471
+time_space_5    | mse=0.196260 | r2=-0.710180 | pearson=0.349597
+time_space_6    | mse=0.168610 | r2=-0.469243 | pearson=0.380742
+time_space_7    | mse=0.125607 | r2=-0.094521 | pearson=0.470549
+time_space_8    | mse=0.116807 | r2=-0.017834 | pearson=0.513177
+time_space_9    | mse=0.119767 | r2=-0.043633 | pearson=0.472304
+
+--- target: future_delta_yaw ---
+ar_0            | mse=0.004870 | r2=-0.060890 | pearson=0.478391
+ar_1            | mse=0.004553 | r2=0.008157 | pearson=0.492811
+ar_2            | mse=0.004471 | r2=0.025939 | pearson=0.484189
+ar_3            | mse=0.004700 | r2=-0.023938 | pearson=0.463738
+ar_4            | mse=0.004481 | r2=0.023913 | pearson=0.469102
+ar_5            | mse=0.004794 | r2=-0.044441 | pearson=0.452841
+time_space_0    | mse=0.005600 | r2=-0.220015 | pearson=0.343785
+time_space_1    | mse=0.005176 | r2=-0.127517 | pearson=0.407875
+time_space_10   | mse=0.005298 | r2=-0.154112 | pearson=0.412546
+time_space_11   | mse=0.005447 | r2=-0.186650 | pearson=0.352611
+time_space_2    | mse=0.005024 | r2=-0.094365 | pearson=0.448539
+time_space_3    | mse=0.005249 | r2=-0.143417 | pearson=0.461216
+time_space_4    | mse=0.006918 | r2=-0.507094 | pearson=0.402471
+time_space_5    | mse=0.007850 | r2=-0.710181 | pearson=0.349597
+time_space_6    | mse=0.006744 | r2=-0.469243 | pearson=0.380742
+time_space_7    | mse=0.005024 | r2=-0.094520 | pearson=0.470550
+time_space_8    | mse=0.004672 | r2=-0.017832 | pearson=0.513177
+time_space_9    | mse=0.004791 | r2=-0.043630 | pearson=0.472305
+
+Saved physics probe results to: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_probe_results.pt
+Saved physics probe report to: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_probe_results.txt
+
+===== summary sorted by r2: past_avg_speed =====
+time_space_0    | mse=0.004845 | r2=0.495493 | pearson=0.744618
+time_space_1    | mse=0.007342 | r2=0.235498 | pearson=0.636365
+time_space_2    | mse=0.009075 | r2=0.055120 | pearson=0.548900
+ar_5            | mse=0.009310 | r2=0.030606 | pearson=0.458775
+ar_3            | mse=0.009677 | r2=-0.007594 | pearson=0.442420
+ar_1            | mse=0.009802 | r2=-0.020660 | pearson=0.437412
+ar_4            | mse=0.009873 | r2=-0.027974 | pearson=0.423212
+time_space_11   | mse=0.010242 | r2=-0.066462 | pearson=0.431431
+ar_0            | mse=0.010263 | r2=-0.068568 | pearson=0.439981
+ar_2            | mse=0.010381 | r2=-0.080931 | pearson=0.414327
+time_space_10   | mse=0.010553 | r2=-0.098849 | pearson=0.442753
+time_space_8    | mse=0.011508 | r2=-0.198234 | pearson=0.416900
+time_space_9    | mse=0.011606 | r2=-0.208423 | pearson=0.407748
+time_space_3    | mse=0.012335 | r2=-0.284380 | pearson=0.440657
+time_space_7    | mse=0.012433 | r2=-0.294583 | pearson=0.400935
+time_space_4    | mse=0.014555 | r2=-0.515508 | pearson=0.392876
+time_space_6    | mse=0.014695 | r2=-0.530140 | pearson=0.367961
+time_space_5    | mse=0.018239 | r2=-0.899059 | pearson=0.313779
+==========================================
+
+===== summary sorted by r2: past_avg_yaw_rate =====
+time_space_1    | mse=0.018215 | r2=0.327965 | pearson=0.649107
+time_space_0    | mse=0.018327 | r2=0.323832 | pearson=0.642817
+ar_1            | mse=0.027051 | r2=0.001987 | pearson=0.483916
+time_space_2    | mse=0.027503 | r2=-0.014707 | pearson=0.518195
+time_space_10   | mse=0.027709 | r2=-0.022309 | pearson=0.501011
+ar_0            | mse=0.028095 | r2=-0.036524 | pearson=0.491317
+ar_4            | mse=0.028337 | r2=-0.045478 | pearson=0.444989
+ar_2            | mse=0.028363 | r2=-0.046435 | pearson=0.463481
+time_space_9    | mse=0.028611 | r2=-0.055568 | pearson=0.487830
+time_space_11   | mse=0.029099 | r2=-0.073578 | pearson=0.480588
+time_space_4    | mse=0.029188 | r2=-0.076874 | pearson=0.512955
+ar_3            | mse=0.029808 | r2=-0.099732 | pearson=0.419807
+ar_5            | mse=0.030109 | r2=-0.110841 | pearson=0.420816
+time_space_8    | mse=0.031239 | r2=-0.152538 | pearson=0.493940
+time_space_3    | mse=0.033291 | r2=-0.228255 | pearson=0.453082
+time_space_7    | mse=0.034334 | r2=-0.266702 | pearson=0.448487
+time_space_6    | mse=0.038135 | r2=-0.406966 | pearson=0.414753
+time_space_5    | mse=0.044713 | r2=-0.649657 | pearson=0.386474
+==========================================
+
+===== summary sorted by r2: past_heading_change =====
+time_space_1    | mse=0.142809 | r2=0.327960 | pearson=0.649107
+time_space_0    | mse=0.143686 | r2=0.323835 | pearson=0.642820
+ar_1            | mse=0.212078 | r2=0.001988 | pearson=0.483917
+time_space_2    | mse=0.215624 | r2=-0.014696 | pearson=0.518198
+time_space_10   | mse=0.217242 | r2=-0.022311 | pearson=0.501012
+ar_0            | mse=0.220262 | r2=-0.036522 | pearson=0.491316
+ar_4            | mse=0.222163 | r2=-0.045470 | pearson=0.444993
+ar_2            | mse=0.222367 | r2=-0.046430 | pearson=0.463484
+time_space_9    | mse=0.224309 | r2=-0.055567 | pearson=0.487831
+time_space_11   | mse=0.228135 | r2=-0.073574 | pearson=0.480590
+time_space_4    | mse=0.228837 | r2=-0.076875 | pearson=0.512956
+ar_3            | mse=0.233692 | r2=-0.099723 | pearson=0.419811
+ar_5            | mse=0.236054 | r2=-0.110841 | pearson=0.420817
+time_space_8    | mse=0.244917 | r2=-0.152547 | pearson=0.493937
+time_space_3    | mse=0.261000 | r2=-0.228233 | pearson=0.453089
+time_space_7    | mse=0.269177 | r2=-0.266714 | pearson=0.448486
+time_space_6    | mse=0.298983 | r2=-0.406976 | pearson=0.414750
+time_space_5    | mse=0.350554 | r2=-0.649661 | pearson=0.386473
+==========================================
+
+===== summary sorted by r2: future_speed =====
+time_space_0    | mse=0.007407 | r2=0.226606 | pearson=0.562860
+time_space_1    | mse=0.008033 | r2=0.161231 | pearson=0.543908
+ar_4            | mse=0.008796 | r2=0.081585 | pearson=0.490467
+ar_5            | mse=0.008935 | r2=0.067025 | pearson=0.478805
+time_space_10   | mse=0.009282 | r2=0.030822 | pearson=0.486421
+ar_3            | mse=0.009290 | r2=0.029990 | pearson=0.467174
+time_space_2    | mse=0.009337 | r2=0.025079 | pearson=0.509563
+ar_1            | mse=0.009371 | r2=0.021444 | pearson=0.493163
+ar_0            | mse=0.009387 | r2=0.019831 | pearson=0.484903
+ar_2            | mse=0.009513 | r2=0.006633 | pearson=0.467770
+time_space_3    | mse=0.010038 | r2=-0.048123 | pearson=0.476629
+time_space_11   | mse=0.010072 | r2=-0.051713 | pearson=0.453182
+time_space_8    | mse=0.010251 | r2=-0.070388 | pearson=0.468903
+time_space_9    | mse=0.010886 | r2=-0.136679 | pearson=0.454269
+time_space_7    | mse=0.011131 | r2=-0.162272 | pearson=0.431305
+time_space_6    | mse=0.011248 | r2=-0.174544 | pearson=0.447819
+time_space_4    | mse=0.011448 | r2=-0.195431 | pearson=0.439935
+time_space_5    | mse=0.014492 | r2=-0.513208 | pearson=0.371220
+==========================================
+
+===== summary sorted by r2: future_yaw_rate =====
+ar_2            | mse=0.111783 | r2=0.025940 | pearson=0.484189
+ar_4            | mse=0.112016 | r2=0.023913 | pearson=0.469102
+ar_1            | mse=0.113824 | r2=0.008160 | pearson=0.492812
+time_space_8    | mse=0.116807 | r2=-0.017834 | pearson=0.513177
+ar_3            | mse=0.117507 | r2=-0.023937 | pearson=0.463738
+time_space_9    | mse=0.119767 | r2=-0.043633 | pearson=0.472304
+ar_5            | mse=0.119860 | r2=-0.044440 | pearson=0.452842
+ar_0            | mse=0.121748 | r2=-0.060891 | pearson=0.478391
+time_space_2    | mse=0.125590 | r2=-0.094368 | pearson=0.448538
+time_space_7    | mse=0.125607 | r2=-0.094521 | pearson=0.470549
+time_space_1    | mse=0.129394 | r2=-0.127515 | pearson=0.407876
+time_space_3    | mse=0.131218 | r2=-0.143415 | pearson=0.461216
+time_space_10   | mse=0.132446 | r2=-0.154113 | pearson=0.412545
+time_space_11   | mse=0.136180 | r2=-0.186650 | pearson=0.352611
+time_space_0    | mse=0.140009 | r2=-0.220017 | pearson=0.343785
+time_space_6    | mse=0.168610 | r2=-0.469243 | pearson=0.380742
+time_space_4    | mse=0.172954 | r2=-0.507089 | pearson=0.402471
+time_space_5    | mse=0.196260 | r2=-0.710180 | pearson=0.349597
+==========================================
+
+===== summary sorted by r2: future_delta_yaw =====
+ar_2            | mse=0.004471 | r2=0.025939 | pearson=0.484189
+ar_4            | mse=0.004481 | r2=0.023913 | pearson=0.469102
+ar_1            | mse=0.004553 | r2=0.008157 | pearson=0.492811
+time_space_8    | mse=0.004672 | r2=-0.017832 | pearson=0.513177
+ar_3            | mse=0.004700 | r2=-0.023938 | pearson=0.463738
+time_space_9    | mse=0.004791 | r2=-0.043630 | pearson=0.472305
+ar_5            | mse=0.004794 | r2=-0.044441 | pearson=0.452841
+ar_0            | mse=0.004870 | r2=-0.060890 | pearson=0.478391
+time_space_2    | mse=0.005024 | r2=-0.094365 | pearson=0.448539
+time_space_7    | mse=0.005024 | r2=-0.094520 | pearson=0.470550
+time_space_1    | mse=0.005176 | r2=-0.127517 | pearson=0.407875
+time_space_3    | mse=0.005249 | r2=-0.143417 | pearson=0.461216
+time_space_10   | mse=0.005298 | r2=-0.154112 | pearson=0.412546
+time_space_11   | mse=0.005447 | r2=-0.186650 | pearson=0.352611
+time_space_0    | mse=0.005600 | r2=-0.220015 | pearson=0.343785
+time_space_6    | mse=0.006744 | r2=-0.469243 | pearson=0.380742
+time_space_4    | mse=0.006918 | r2=-0.507094 | pearson=0.402471
+time_space_5    | mse=0.007850 | r2=-0.710181 | pearson=0.349597
+==========================================

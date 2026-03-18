@@ -392,13 +392,13 @@ def extract_features_streaming(
         img_seq, pose_seq, yaw_seq = build_full_sequence(sample, task, sequence_provider)
         raw_baselines = build_raw_pose_yaw_baselines(pose_seq, yaw_seq)
 
-        img_seq = img_seq.unsqueeze(0)
+        img_seq = img_seq.unsqueeze(0).to(device)
         pose_seq = pose_seq.unsqueeze(0).to(device)
         yaw_seq = yaw_seq.unsqueeze(0).to(device)
 
         with torch.no_grad():
             start_token_seq, _ = tokenizer.encode_to_z(img_seq)
-            feature_total = tokenizer.vq_model.quantize.embedding(start_token_seq).to(device, non_blocking=True)
+            feature_total = tokenizer.vq_model.quantize.embedding(start_token_seq)
 
         drop_flag = torch.isinf(pose_seq[:, 0, 0])
         pose_indices_total = poses_to_indices(
@@ -684,7 +684,7 @@ def main():
         print("legacy_tensor_list detected: sample already carries image/pose/yaw tensors.")
 
     print("loading tokenizer ...")
-    tokenizer = Tokenizer(args, local_rank="cpu")
+    tokenizer = Tokenizer(args, local_rank=device)
     maybe_print_cuda_memory(device, prefix="[after tokenizer load]")
 
     effective_frames = runtime_hparams["condition_frames"]

@@ -39,28 +39,25 @@ class VideoVQModel(nn.Module):
             32, 
             self.condition_frames,
             1000,
-        )
+        ).cuda()
         self.freqs_cis_space = precompute_freqs_cis(
             32, 
             512,
             1000,
-        )
+        ).cuda()
 
     def spatial_temporal_blocks(self, x):
         _, _, _, w = x.shape
-        device = x.device
         matrix = torch.tril(torch.ones(self.condition_frames, self.condition_frames)) 
         time_causal_mask = torch.where(matrix==0, float('-inf'), matrix) 
         time_causal_mask = torch.where(matrix==1, 0, time_causal_mask) 
-        mask_time = time_causal_mask.contiguous().to(device)
-        freqs_cis_time = self.freqs_cis_time.to(device)
-        freqs_cis_space = self.freqs_cis_space.to(device)
+        mask_time = time_causal_mask.contiguous().cuda()
         xx = rearrange(x, '(b f) c h w -> b f (h w) c', f=self.condition_frames)
         b, f, l, c = xx.shape
         xx = rearrange(xx, 'b f l c -> (b l) f c') 
-        xx = self.causal_time_block(xx, freqs_cis_time, mask_time)
+        xx = self.causal_time_block(xx, self.freqs_cis_time, mask_time)
         xx = rearrange(xx, '(b l) f c -> (b f) l c', b=b, l=l, f=f)
-        xx = self.space_block(xx, freqs_cis_space)
+        xx = self.space_block(xx, self.freqs_cis_space)
         xx = rearrange(xx, '(b f) l c -> b f l c', b=b, f=f)
         x = rearrange(xx, 'b f (h w) c -> (b f) c h w', b=b, f=f, w=w, c=c)
         return x
