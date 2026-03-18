@@ -1,0 +1,22 @@
+Loading feature file from: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_features.pt
+num samples = 1024
+num groups = 13
+feature_mode = all_mean_last_t
+target stats:
+  past_avg_speed: mean=0.089930, std=0.090144, min=0.000176, max=1.016995
+  past_avg_yaw_rate: mean=0.000541, std=0.043754, min=-0.198980, max=0.152888
+  past_heading_change: mean=0.001516, std=0.122510, min=-0.557190, max=0.428085
+  future_speed: mean=0.087887, std=0.090821, min=0.000056, max=0.437122
+  future_yaw_rate: mean=0.001794, std=0.210883, min=-1.072235, max=1.438217
+  future_delta_yaw: mean=0.000359, std=0.042177, min=-0.214447, max=0.287643
+
+===== training physics probes (GroupKFold by seq_id) =====
+
+--- target: past_avg_speed ---
+ar_0            | mse=0.039193 | r2=-3.823165 | pearson=0.159349
+ar_1            | mse=0.034211 | r2=-3.210068 | pearson=0.154362
+ar_2            | mse=0.031266 | r2=-2.847638 | pearson=0.146335
+ar_3            | mse=0.026854 | r2=-2.304673 | pearson=0.195202
+ar_4            | mse=0.028510 | r2=-2.508506 | pearson=0.191128
+ar_5            | mse=0.021468 | r2=-1.641869 | pearson=0.276102
+next_state_hidden | mse=0.042594 | r2=-4.241640 | pearson=0.218749

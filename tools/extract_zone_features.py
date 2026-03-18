@@ -1,4 +1,5 @@
 import argparse
+import gc
 import os
 import random
 import sys
@@ -560,6 +561,7 @@ def extract_features_streaming(
         del pose_indices_total
         del yaw_indices_total
         del drop_flag
+        gc.collect()
 
     print("\nfinal output tensor summary ...")
     for layer_name, feats in layer_features.items():
