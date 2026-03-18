@@ -1,0 +1,116 @@
+train_feature_path: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data_coh_mini/train/coherence_features_tokenwise_fp16.pt
+test_feature_path: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data_coh_mini/test/coherence_features_tokenwise_fp16.pt
+result_path: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data_coh_mini/results/coherence_probe_holdout_tokenwise_fp16.pt
+n_splits: 5
+random_state: 1234
+
+===== split: overall =====
+train_num_samples: 120
+train_positive: 40
+train_negative: 80
+train_num_groups: 6
+test_num_samples: 60
+test_positive: 20
+test_negative: 40
+test_num_groups: 3
+test_majority_baseline_acc: 0.6667
+test_random_baseline_auc: 0.5000
+
+===== summary sorted by test_auc =====
+ar_2            | selected_token=  2 (pose_y) | train_cv_auc=0.8717 | test_auc=0.7413 | test_acc=0.6667 | test_f1=0.5833
+ar_3            | selected_token=  2 (pose_y) | train_cv_auc=0.8760 | test_auc=0.7225 | test_acc=0.6333 | test_f1=0.2143
+ar_4            | selected_token=  2 (pose_y) | train_cv_auc=0.8896 | test_auc=0.7225 | test_acc=0.6500 | test_f1=0.3226
+ar_1            | selected_token=  2 (pose_y) | train_cv_auc=0.8771 | test_auc=0.7200 | test_acc=0.6500 | test_f1=0.4878
+ar_5            | selected_token=  2 (pose_y) | train_cv_auc=0.8869 | test_auc=0.7075 | test_acc=0.6333 | test_f1=0.3889
+ar_0            | selected_token=  2 (pose_y) | train_cv_auc=0.8744 | test_auc=0.6525 | test_acc=0.6833 | test_f1=0.5366
+raw_pose_yaw_past | train_cv_auc=0.5727 | test_auc=0.5775 | test_acc=0.6167 | test_f1=0.5306
+tokenizer_last  | selected_token=  0 (img[0,0]) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_0    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_1    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_2    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_3    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_4    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_5    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_6    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_7    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_8    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_9    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_10   | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+time_space_11   | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.6667 | test_f1=0.0000
+raw_pose_yaw_full | train_cv_auc=0.4414 | test_auc=0.4625 | test_acc=0.4667 | test_f1=0.3333
+next_state_hidden | selected_token=  1 (pose_x) | train_cv_auc=0.6600 | test_auc=0.4462 | test_acc=0.4500 | test_f1=0.3265
+====================================
+
+===== split: random_mismatch =====
+train_num_samples: 80
+train_positive: 40
+train_negative: 40
+train_num_groups: 6
+test_num_samples: 40
+test_positive: 20
+test_negative: 20
+test_num_groups: 3
+test_majority_baseline_acc: 0.5000
+test_random_baseline_auc: 0.5000
+
+===== summary sorted by test_auc =====
+ar_4            | selected_token=  2 (pose_y) | train_cv_auc=0.8948 | test_auc=0.6475 | test_acc=0.6000 | test_f1=0.5789
+ar_5            | selected_token=  2 (pose_y) | train_cv_auc=0.8941 | test_auc=0.6350 | test_acc=0.6000 | test_f1=0.5556
+ar_2            | selected_token=491 (img[15,8]) | train_cv_auc=0.9087 | test_auc=0.5375 | test_acc=0.5250 | test_f1=0.6545
+ar_1            | selected_token=467 (img[14,16]) | train_cv_auc=0.9059 | test_auc=0.5150 | test_acc=0.5750 | test_f1=0.7018
+ar_3            | selected_token=492 (img[15,9]) | train_cv_auc=0.9125 | test_auc=0.5075 | test_acc=0.5000 | test_f1=0.6154
+tokenizer_last  | selected_token=  0 (img[0,0]) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_0    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_1    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_2    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_3    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_4    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_5    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_6    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_7    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_8    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_9    | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_10   | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+time_space_11   | selected_token=  0 (yaw) | train_cv_auc=0.5000 | test_auc=0.5000 | test_acc=0.5000 | test_f1=0.0000
+next_state_hidden | selected_token=  1 (pose_x) | train_cv_auc=0.6059 | test_auc=0.4900 | test_acc=0.5750 | test_f1=0.6667
+raw_pose_yaw_past | train_cv_auc=0.5802 | test_auc=0.4875 | test_acc=0.5500 | test_f1=0.5714
+ar_0            | selected_token=468 (img[14,17]) | train_cv_auc=0.9049 | test_auc=0.4800 | test_acc=0.6000 | test_f1=0.6923
+raw_pose_yaw_full | train_cv_auc=0.4399 | test_auc=0.4625 | test_acc=0.4500 | test_f1=0.4211
+====================================
+
+===== split: hard_mismatch =====
+train_num_samples: 73
+train_positive: 40
+train_negative: 33
+train_num_groups: 6
+test_num_samples: 37
+test_positive: 20
+test_negative: 17
+test_num_groups: 3
+test_majority_baseline_acc: 0.5405
+test_random_baseline_auc: 0.5000
+
+===== summary sorted by test_auc =====
+ar_0            | selected_token=  1 (pose_x) | train_cv_auc=0.9365 | test_auc=0.9176 | test_acc=0.8919 | test_f1=0.9000
+ar_1            | selected_token=  1 (pose_x) | train_cv_auc=0.9437 | test_auc=0.8912 | test_acc=0.8649 | test_f1=0.8837
+ar_3            | selected_token=  1 (pose_x) | train_cv_auc=0.9365 | test_auc=0.8882 | test_acc=0.7838 | test_f1=0.8261
+ar_5            | selected_token=  1 (pose_x) | train_cv_auc=0.9542 | test_auc=0.8647 | test_acc=0.7568 | test_f1=0.7907
+ar_4            | selected_token=  2 (pose_y) | train_cv_auc=0.9406 | test_auc=0.8324 | test_acc=0.7838 | test_f1=0.8261
+ar_2            | selected_token=  2 (pose_y) | train_cv_auc=0.9427 | test_auc=0.7706 | test_acc=0.6486 | test_f1=0.7347
+next_state_hidden | selected_token=  1 (pose_x) | train_cv_auc=0.8896 | test_auc=0.6941 | test_acc=0.5946 | test_f1=0.6809
+raw_pose_yaw_past | train_cv_auc=0.5354 | test_auc=0.5794 | test_acc=0.6216 | test_f1=0.6667
+time_space_0    | selected_token= 85 (img[2,18]) | train_cv_auc=0.5885 | test_auc=0.5338 | test_acc=0.5405 | test_f1=0.6909
+time_space_6    | selected_token= 65 (img[1,30]) | train_cv_auc=0.5760 | test_auc=0.5338 | test_acc=0.5405 | test_f1=0.7018
+time_space_2    | selected_token=426 (img[13,7]) | train_cv_auc=0.5844 | test_auc=0.5103 | test_acc=0.5135 | test_f1=0.6400
+time_space_11   | selected_token=212 (img[6,17]) | train_cv_auc=0.5802 | test_auc=0.4985 | test_acc=0.5405 | test_f1=0.6909
+time_space_4    | selected_token=426 (img[13,7]) | train_cv_auc=0.5813 | test_auc=0.4956 | test_acc=0.5135 | test_f1=0.6400
+time_space_1    | selected_token=102 (img[3,3]) | train_cv_auc=0.5844 | test_auc=0.4926 | test_acc=0.5405 | test_f1=0.6667
+tokenizer_last  | selected_token=258 (img[8,2]) | train_cv_auc=0.5656 | test_auc=0.4897 | test_acc=0.5135 | test_f1=0.6250
+time_space_10   | selected_token=180 (img[5,17]) | train_cv_auc=0.5750 | test_auc=0.4838 | test_acc=0.5405 | test_f1=0.7018
+time_space_3    | selected_token=347 (img[10,24]) | train_cv_auc=0.5865 | test_auc=0.4809 | test_acc=0.5405 | test_f1=0.6909
+raw_pose_yaw_full | train_cv_auc=0.4958 | test_auc=0.4779 | test_acc=0.4595 | test_f1=0.4444
+time_space_9    | selected_token=181 (img[5,18]) | train_cv_auc=0.5875 | test_auc=0.4779 | test_acc=0.5405 | test_f1=0.7018
+time_space_5    | selected_token=135 (img[4,4]) | train_cv_auc=0.5698 | test_auc=0.4750 | test_acc=0.5405 | test_f1=0.6667
+time_space_8    | selected_token= 65 (img[1,30]) | train_cv_auc=0.5813 | test_auc=0.4721 | test_acc=0.5405 | test_f1=0.7018
+time_space_7    | selected_token=200 (img[6,5]) | train_cv_auc=0.5823 | test_auc=0.4456 | test_acc=0.5135 | test_f1=0.6786
+====================================

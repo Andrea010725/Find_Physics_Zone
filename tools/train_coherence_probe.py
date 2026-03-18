@@ -111,6 +111,16 @@ def get_negative_type_array(meta, expected_len):
     return negative_type
 
 
+def sanitize_features(X):
+    X = np.asarray(X, dtype=np.float32)
+    invalid_mask = ~np.isfinite(X)
+    num_invalid = int(invalid_mask.sum())
+    if num_invalid > 0:
+        X = X.copy()
+        X[invalid_mask] = 0.0
+    return X, num_invalid
+
+
 def evaluate_one_layer(X, y, groups, n_splits=5, random_state=1234):
     unique_groups = np.unique(groups)
     n_splits = min(n_splits, unique_groups.size)
@@ -125,8 +135,8 @@ def evaluate_one_layer(X, y, groups, n_splits=5, random_state=1234):
     auc_list = []
 
     for train_idx, test_idx in splitter.split(X, y, groups):
-        X_train = X[train_idx]
-        X_test = X[test_idx]
+        X_train, _ = sanitize_features(X[train_idx])
+        X_test, _ = sanitize_features(X[test_idx])
         y_train = y[train_idx]
         y_test = y[test_idx]
 
@@ -152,6 +162,7 @@ def evaluate_one_layer(X, y, groups, n_splits=5, random_state=1234):
 
 
 def fit_classifier(X_train, y_train, random_state=1234):
+    X_train, _ = sanitize_features(X_train)
     clf = Pipeline([
         ("scaler", StandardScaler()),
         ("clf", LogisticRegression(
@@ -168,6 +179,7 @@ def fit_classifier(X_train, y_train, random_state=1234):
 
 def evaluate_holdout_layer(X_train, y_train, X_test, y_test, random_state=1234):
     clf = fit_classifier(X_train, y_train, random_state=random_state)
+    X_test, _ = sanitize_features(X_test)
     y_pred = clf.predict(X_test)
     y_prob = clf.predict_proba(X_test)[:, 1]
     return {

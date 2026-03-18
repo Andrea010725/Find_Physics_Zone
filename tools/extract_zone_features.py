@@ -90,6 +90,7 @@ def parse_cli_args():
     parser.add_argument("--start_index", type=int, default=0)
     parser.add_argument("--end_index", type=int, default=None)
     parser.add_argument("--max_samples", type=int, default=None)
+    parser.add_argument("--samples_path", type=str, default=None)
     parser.add_argument("--output_path", type=str, default=None)
     parser.add_argument("--feature_dtype", type=str, choices=["float32", "float16"], default="float32")
     return parser.parse_args()
@@ -144,13 +145,19 @@ def get_runtime_hparams(config_args, cli_args):
     }
 
 
-def load_probe_samples(task, start_index=0, end_index=None, max_samples=None):
+def resolve_probe_samples_path(task, samples_path=None):
+    if samples_path is not None:
+        return samples_path
+
     if task == "physics":
-        path = PHYSICS_SAMPLES_PATH
-    elif task == "coherence":
-        path = COHERENCE_SAMPLES_PATH
-    else:
-        raise ValueError(f"Unknown task: {task}")
+        return PHYSICS_SAMPLES_PATH
+    if task == "coherence":
+        return COHERENCE_SAMPLES_PATH
+    raise ValueError(f"Unknown task: {task}")
+
+
+def load_probe_samples(task, start_index=0, end_index=None, max_samples=None, samples_path=None):
+    path = resolve_probe_samples_path(task, samples_path=samples_path)
 
     print(f"loading probe samples from: {path}")
     payload = torch.load(path, map_location="cpu")
@@ -642,6 +649,7 @@ def main():
     print("start_index =", cli_args.start_index)
     print("end_index =", cli_args.end_index)
     print("max_samples =", cli_args.max_samples)
+    print("samples_path =", cli_args.samples_path)
     print("output_path =", cli_args.output_path)
     print("feature_dtype =", cli_args.feature_dtype)
     print("max_cached_sequences =", cli_args.max_cached_sequences)
@@ -668,6 +676,7 @@ def main():
         start_index=cli_args.start_index,
         end_index=cli_args.end_index,
         max_samples=cli_args.max_samples,
+        samples_path=cli_args.samples_path,
     )
 
     sequence_provider = None
