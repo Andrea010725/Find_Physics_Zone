@@ -52,6 +52,26 @@ PHYSICS_LABEL_KEYS = [
     "future_delta_yaw",
 ]
 
+NON_LABEL_KEYS = {
+    "index",
+    "sample_format",
+    "condition_frames",
+    "future_horizon",
+    "rollout_steps",
+    "rollout_keypoints",
+}
+
+TENSOR_SAMPLE_KEYS = {
+    "past_imgs",
+    "past_poses",
+    "past_yaws",
+    "future_img",
+    "future_pose",
+    "future_yaw",
+    "future_pose_cond",
+    "future_yaw_cond",
+}
+
 META_KEYS = [
     "seq_id",
     "window_start",
@@ -161,10 +181,19 @@ def load_probe_samples(task, start_index=0, end_index=None, max_samples=None, sa
 
     print(f"loading probe samples from: {path}")
     payload = torch.load(path, map_location="cpu")
+    payload_meta = {}
 
     if isinstance(payload, dict) and "samples" in payload:
         samples = payload["samples"]
         sample_format = payload.get("sample_format", "unknown")
+        payload_meta = {
+            "legacy_label_keys": payload.get("legacy_label_keys"),
+            "planning_head_families": payload.get("planning_head_families"),
+            "condition_frames": payload.get("condition_frames"),
+            "future_horizon": payload.get("future_horizon"),
+            "rollout_steps": payload.get("rollout_steps"),
+            "rollout_keypoints": payload.get("rollout_keypoints"),
+        }
         print("probe payload keys =", sorted(payload.keys()))
     else:
         samples = payload
@@ -190,7 +219,38 @@ def load_probe_samples(task, start_index=0, end_index=None, max_samples=None, sa
     print(f"num samples = {len(samples)}")
     if len(samples) > 0:
         print("first sample keys =", sorted(samples[0].keys()))
-    return samples, sample_format, start_index, end_index
+    return samples, sample_format, payload_meta, start_index, end_index
+
+
+def discover_label_keys(task, samples, payload_meta):
+    if not samples:
+        return [], {}
+
+    if task == "coherence":
+        return ["coherence_label"], {}
+
+    first_sample = samples[0]
+    planning_head_families = payload_meta.get("planning_head_families") or {}
+    label_keys = []
+
+    for family_name, family_keys in planning_head_families.items():
+        valid_family_keys = [key for key in family_keys if key in first_sample]
+        if valid_family_keys:
+            planning_head_families[family_name] = valid_family_keys
+            label_keys.extend(valid_family_keys)
+
+    legacy_label_keys = payload_meta.get("legacy_label_keys") or PHYSICS_LABEL_KEYS
+    for key in legacy_label_keys:
+        if key in first_sample and key not in label_keys:
+            label_keys.append(key)
+
+    for key, value in first_sample.items():
+        if key in NON_LABEL_KEYS or key in TENSOR_SAMPLE_KEYS or key in META_KEYS:
+            continue
+        if isinstance(value, (int, float, np.integer, np.floating)) and key not in label_keys:
+            label_keys.append(key)
+
+    return label_keys, planning_head_families
 
 
 class SequenceProvider:
@@ -377,6 +437,7 @@ def extract_features_streaming(
     sequence_provider,
     log_every,
     feature_dtype,
+    label_keys,
 ):
     print("\n===== streaming feature extraction =====")
     print(
@@ -447,11 +508,10 @@ def extract_features_streaming(
             print("pose_seq shape =", tuple(pose_seq.shape))
             print("yaw_seq shape =", tuple(yaw_seq.shape))
             print("num hidden states =", len(hidden_states))
-            for k in PHYSICS_LABEL_KEYS:
+            print("label_keys =", label_keys)
+            for k in label_keys:
                 if k in sample:
                     print(f"{k} =", sample[k])
-            if "coherence_label" in sample:
-                print("coherence_label =", sample["coherence_label"])
             for k in META_KEYS:
                 if k in sample:
                     print(f"{k} =", sample[k])
@@ -488,14 +548,18 @@ def extract_features_streaming(
                     f"dtype={layer_features[layer_name].dtype}"
                 )
 
-            for key in PHYSICS_LABEL_KEYS:
+            for key in label_keys:
                 if key in sample:
-                    labels[key] = torch.empty(total_samples, dtype=torch.float32)
-                    labels[key][0] = float(sample[key])
-
-            if "coherence_label" in sample:
-                labels["coherence_label"] = torch.empty(total_samples, dtype=torch.long)
-                labels["coherence_label"][0] = int(sample["coherence_label"])
+                    label_dtype = (
+                        torch.long
+                        if isinstance(sample[key], (int, np.integer))
+                        else torch.float32
+                    )
+                    labels[key] = torch.empty(total_samples, dtype=label_dtype)
+                    if label_dtype == torch.long:
+                        labels[key][0] = int(sample[key])
+                    else:
+                        labels[key][0] = float(sample[key])
 
             for k in META_KEYS:
                 if k in sample:
@@ -516,12 +580,12 @@ def extract_features_streaming(
                 feat = cast_feature_dtype(feat, feature_dtype)
                 layer_features[layer_name][i] = feat
 
-            for key in PHYSICS_LABEL_KEYS:
+            for key in label_keys:
                 if key in sample:
-                    labels[key][i] = float(sample[key])
-
-            if "coherence_label" in sample:
-                labels["coherence_label"][i] = int(sample["coherence_label"])
+                    if labels[key].dtype == torch.long:
+                        labels[key][i] = int(sample[key])
+                    else:
+                        labels[key][i] = float(sample[key])
 
             for k in META_KEYS:
                 if k in sample:
@@ -588,12 +652,26 @@ def extract_features_streaming(
     return layer_features, labels, meta
 
 
-def save_feature_file(task, layer_features, labels, meta, pool_mode, sample_format, feature_dtype, save_path, start_index, end_index):
+def save_feature_file(
+    task,
+    layer_features,
+    labels,
+    meta,
+    pool_mode,
+    sample_format,
+    feature_dtype,
+    save_path,
+    start_index,
+    end_index,
+    planning_head_families=None,
+):
     out = {
         "task": task,
         "feature_mode": f"{pool_mode}_last_t",
         "feature_dtype": feature_dtype,
         "probe_sample_format": sample_format,
+        "planning_head_families": planning_head_families or {},
+        "label_keys": sorted(labels.keys()),
         "slice_range": {
             "start_index": int(start_index),
             "end_index": int(end_index),
@@ -671,13 +749,21 @@ def main():
     model.eval()
     maybe_print_cuda_memory(device, prefix="[after world model load]")
 
-    samples, sample_format, start_index, end_index = load_probe_samples(
+    samples, sample_format, payload_meta, start_index, end_index = load_probe_samples(
         cli_args.task,
         start_index=cli_args.start_index,
         end_index=cli_args.end_index,
         max_samples=cli_args.max_samples,
         samples_path=cli_args.samples_path,
     )
+    label_keys, planning_head_families = discover_label_keys(
+        task=cli_args.task,
+        samples=samples,
+        payload_meta=payload_meta,
+    )
+    print("discovered label_keys =", label_keys)
+    if planning_head_families:
+        print("planning_head_families =", planning_head_families)
 
     sequence_provider = None
     if sample_format != "legacy_tensor_list":
@@ -710,6 +796,7 @@ def main():
         sequence_provider=sequence_provider,
         log_every=cli_args.log_every,
         feature_dtype=cli_args.feature_dtype,
+        label_keys=label_keys,
     )
 
     if cli_args.output_path is None:
@@ -733,6 +820,7 @@ def main():
         save_path=save_path,
         start_index=start_index,
         end_index=end_index,
+        planning_head_families=planning_head_families,
     )
 
 
