@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import numpy as np
@@ -24,11 +25,11 @@ def resolve_repo_path(*parts):
 
 data_root = resolve_repo_path("data")
 
-FEATURE_PATH = os.path.join(data_root, "physics_features.pt")
-RESULT_PATH = os.path.join(data_root, "physics_probe_results.pt")
-REPORT_PATH = os.path.join(data_root, "physics_probe_results.txt")
+DEFAULT_FEATURE_PATH = os.path.join(data_root, "physics_features.pt")
+DEFAULT_RESULT_PATH = os.path.join(data_root, "physics_probe_results.pt")
+DEFAULT_REPORT_PATH = os.path.join(data_root, "physics_probe_results.txt")
 
-TARGET_KEYS = [
+DEFAULT_TARGET_KEYS = [
     "past_avg_speed",
     "past_avg_yaw_rate",
     "past_heading_change",
@@ -40,12 +41,33 @@ TARGET_KEYS = [
 N_SPLITS = 5
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--feature_path", type=str, default=DEFAULT_FEATURE_PATH)
+    parser.add_argument("--result_path", type=str, default=DEFAULT_RESULT_PATH)
+    parser.add_argument("--report_path", type=str, default=DEFAULT_REPORT_PATH)
+    parser.add_argument("--alpha", type=float, default=1.0)
+    parser.add_argument("--n_splits", type=int, default=N_SPLITS)
+    parser.add_argument(
+        "--targets",
+        nargs="*",
+        default=None,
+        help="Optional subset of target keys to evaluate. Defaults to all physics regression targets.",
+    )
+    return parser.parse_args()
+
+
 def pearson_corr(x, y):
     x = np.asarray(x)
     y = np.asarray(y)
     if np.std(x) < 1e-12 or np.std(y) < 1e-12:
         return 0.0
     return float(np.corrcoef(x, y)[0, 1])
+
+
+def sanitize_features(X):
+    X = np.asarray(X, dtype=np.float32)
+    return np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
 
 
 def build_groups(meta):
@@ -73,8 +95,8 @@ def evaluate_one_layer_regression(X, y, groups, alpha=1.0, n_splits=5):
     y_pred_all = []
 
     for train_idx, test_idx in splitter.split(X, y, groups):
-        X_train = X[train_idx]
-        X_test = X[test_idx]
+        X_train = sanitize_features(X[train_idx])
+        X_test = sanitize_features(X[test_idx])
         y_train = y[train_idx]
         y_test = y[test_idx]
 
@@ -197,10 +219,29 @@ def format_metric_line(layer_name, metric_dict):
     )
 
 
-def build_report_text(results, targets, groups):
+def build_targets(labels, requested_targets=None):
+    target_keys = requested_targets or DEFAULT_TARGET_KEYS
+    missing_targets = [key for key in target_keys if key not in labels]
+    if missing_targets:
+        raise KeyError(f"Missing requested targets in feature file: {missing_targets}")
+
+    targets = {
+        key: labels[key].numpy().astype(np.float32)
+        for key in target_keys
+    }
+    return targets
+
+
+def ensure_parent_dir(path):
+    parent = os.path.dirname(os.path.abspath(path))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
+def build_report_text(results, targets, groups, feature_path, result_path):
     lines = []
-    lines.append(f"feature_path: {FEATURE_PATH}")
-    lines.append(f"result_path: {RESULT_PATH}")
+    lines.append(f"feature_path: {feature_path}")
+    lines.append(f"result_path: {result_path}")
     lines.append(f"num_samples: {len(next(iter(targets.values())))}")
     lines.append(f"num_groups: {len(np.unique(groups))}")
     lines.append("")
@@ -227,8 +268,10 @@ def build_report_text(results, targets, groups):
 
 
 def main():
-    print(f"Loading feature file from: {FEATURE_PATH}")
-    data = torch.load(FEATURE_PATH, map_location="cpu")
+    args = parse_args()
+
+    print(f"Loading feature file from: {args.feature_path}")
+    data = torch.load(args.feature_path, map_location="cpu")
 
     layer_features = data["layer_features"]
     labels = data["labels"]
@@ -236,17 +279,14 @@ def main():
     feature_mode = data.get("feature_mode", "unknown")
     groups = build_groups(meta)
 
-    targets = {
-        key: labels[key].numpy().astype(np.float32)
-        for key in TARGET_KEYS
-        if key in labels
-    }
+    targets = build_targets(labels, requested_targets=args.targets)
     if not targets:
-        raise KeyError(f"No physics targets found. Expected any of: {TARGET_KEYS}")
+        raise KeyError(f"No physics targets found. Expected any of: {DEFAULT_TARGET_KEYS}")
 
     print("num samples =", len(next(iter(targets.values()))))
     print("num groups =", len(np.unique(groups)))
     print("feature_mode =", feature_mode)
+    print("targets =", list(targets.keys()))
     print("target stats:")
     for name, y in targets.items():
         print(
@@ -272,8 +312,8 @@ def main():
                     X=X,
                     y=y,
                     groups=groups,
-                    alpha=1.0,
-                    n_splits=N_SPLITS,
+                    alpha=args.alpha,
+                    n_splits=args.n_splits,
                 )
             else:
                 print(f"{layer_name:15s} | tokenwise layer with {X.shape[1]} tokens")
@@ -282,20 +322,29 @@ def main():
                     X=X,
                     y=y,
                     groups=groups,
-                    alpha=1.0,
-                    n_splits=N_SPLITS,
+                    alpha=args.alpha,
+                    n_splits=args.n_splits,
                 )
             results[target_name][layer_name] = layer_result
 
             print(format_metric_line(layer_name, layer_result))
 
-    torch.save(results, RESULT_PATH)
-    print(f"\nSaved physics probe results to: {RESULT_PATH}")
+    ensure_parent_dir(args.result_path)
+    ensure_parent_dir(args.report_path)
 
-    report_text = build_report_text(results, targets, groups)
-    with open(REPORT_PATH, "w", encoding="utf-8") as f:
+    torch.save(results, args.result_path)
+    print(f"\nSaved physics probe results to: {args.result_path}")
+
+    report_text = build_report_text(
+        results,
+        targets,
+        groups,
+        feature_path=args.feature_path,
+        result_path=args.result_path,
+    )
+    with open(args.report_path, "w", encoding="utf-8") as f:
         f.write(report_text)
-    print(f"Saved physics probe report to: {REPORT_PATH}")
+    print(f"Saved physics probe report to: {args.report_path}")
 
     for target_name, layer_result_dict in results.items():
         print(f"\n===== summary sorted by r2: {target_name} =====")

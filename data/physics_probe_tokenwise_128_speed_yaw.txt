@@ -1,0 +1,110 @@
+feature_path: ./data/physics_features_tokenwise_128_fp16.pt
+result_path: ./data/physics_probe_tokenwise_128_speed_yaw.pt
+num_samples: 128
+num_groups: 3
+
+target stats:
+  past_avg_speed: mean=0.169623, std=0.507046, min=0.000131, max=2.649285
+  past_avg_yaw_rate: mean=-0.013386, std=0.039248, min=-0.156663, max=0.012109
+  future_speed: mean=0.040247, std=0.172082, min=0.000030, max=1.181101
+  future_yaw_rate: mean=-0.003452, std=0.038744, min=-0.310446, max=0.088530
+
+===== summary sorted by r2: past_avg_speed =====
+time_space_0    | best_token=109 (img[3,10]) | mse=0.285510 | r2=-0.110520 | pearson=0.019299
+tokenizer_last  | best_token=298 (img[9,10]) | mse=0.285785 | r2=-0.111589 | pearson=-0.438419
+time_space_10   | best_token= 11 (img[0,8]) | mse=0.285822 | r2=-0.111734 | pearson=-0.152069
+time_space_9    | best_token= 75 (img[2,8]) | mse=0.285831 | r2=-0.111769 | pearson=-0.096483
+time_space_5    | best_token=130 (img[3,31]) | mse=0.285853 | r2=-0.111855 | pearson=-0.006428
+time_space_2    | best_token= 77 (img[2,10]) | mse=0.285881 | r2=-0.111964 | pearson=-0.007132
+ar_2            | best_token= 66 (img[1,31]) | mse=0.285923 | r2=-0.112126 | pearson=-0.046615
+ar_1            | best_token= 65 (img[1,30]) | mse=0.285975 | r2=-0.112328 | pearson=-0.163459
+time_space_1    | best_token=109 (img[3,10]) | mse=0.286002 | r2=-0.112432 | pearson=0.067698
+time_space_8    | best_token=108 (img[3,9]) | mse=0.286009 | r2=-0.112462 | pearson=-0.179679
+ar_3            | best_token=398 (img[12,11]) | mse=0.286022 | r2=-0.112512 | pearson=-0.048653
+ar_0            | best_token=130 (img[3,31]) | mse=0.286042 | r2=-0.112587 | pearson=-0.051889
+time_space_3    | best_token= 77 (img[2,10]) | mse=0.286052 | r2=-0.112627 | pearson=-0.121035
+next_state_hidden | best_token= 98 (img[2,31]) | mse=0.286058 | r2=-0.112650 | pearson=-0.080604
+time_space_11   | best_token= 98 (img[2,31]) | mse=0.286065 | r2=-0.112679 | pearson=-0.079469
+time_space_4    | best_token=108 (img[3,9]) | mse=0.286080 | r2=-0.112737 | pearson=-0.072464
+ar_4            | best_token= 77 (img[2,10]) | mse=0.286142 | r2=-0.112978 | pearson=0.003848
+time_space_7    | best_token=400 (img[12,13]) | mse=0.286157 | r2=-0.113035 | pearson=-0.155379
+ar_5            | best_token=399 (img[12,12]) | mse=0.286163 | r2=-0.113059 | pearson=0.002949
+time_space_6    | best_token=108 (img[3,9]) | mse=0.286197 | r2=-0.113191 | pearson=-0.094796
+raw_pose_yaw_full | mse=1.762441 | r2=-5.855187 | pearson=-0.157012
+raw_pose_yaw_past | mse=356.515350 | r2=-1385.701294 | pearson=-0.004144
+==========================================
+
+===== summary sorted by r2: past_avg_yaw_rate =====
+time_space_1    | best_token=395 (img[12,8]) | mse=0.001323 | r2=0.140860 | pearson=0.831786
+time_space_0    | best_token=402 (img[12,15]) | mse=0.001336 | r2=0.132430 | pearson=0.791795
+time_space_2    | best_token=128 (img[3,29]) | mse=0.001485 | r2=0.036173 | pearson=0.286728
+time_space_10   | best_token= 33 (img[0,30]) | mse=0.001502 | r2=0.024873 | pearson=0.758935
+time_space_5    | best_token= 34 (img[0,31]) | mse=0.001532 | r2=0.005304 | pearson=0.437109
+time_space_3    | best_token=368 (img[11,13]) | mse=0.001537 | r2=0.002257 | pearson=0.547010
+ar_0            | best_token= 10 (img[0,7]) | mse=0.001542 | r2=-0.001371 | pearson=0.403435
+ar_5            | best_token= 13 (img[0,10]) | mse=0.001543 | r2=-0.001642 | pearson=0.465231
+ar_4            | best_token= 12 (img[0,9]) | mse=0.001560 | r2=-0.012941 | pearson=0.387688
+time_space_11   | best_token= 10 (img[0,7]) | mse=0.001569 | r2=-0.018531 | pearson=0.382404
+next_state_hidden | best_token= 10 (img[0,7]) | mse=0.001570 | r2=-0.019071 | pearson=0.380850
+time_space_9    | best_token= 98 (img[2,31]) | mse=0.001580 | r2=-0.025612 | pearson=0.434766
+time_space_6    | best_token= 64 (img[1,29]) | mse=0.001580 | r2=-0.025947 | pearson=0.151230
+time_space_8    | best_token=368 (img[11,13]) | mse=0.001581 | r2=-0.026619 | pearson=0.533583
+ar_3            | best_token= 12 (img[0,9]) | mse=0.001582 | r2=-0.027291 | pearson=0.361462
+time_space_4    | best_token=  1 (pose_x) | mse=0.001591 | r2=-0.032804 | pearson=0.654464
+time_space_7    | best_token= 76 (img[2,9]) | mse=0.001592 | r2=-0.033319 | pearson=0.426082
+ar_2            | best_token=  3 (img[0,0]) | mse=0.001597 | r2=-0.036809 | pearson=0.348516
+ar_1            | best_token=499 (img[15,16]) | mse=0.001614 | r2=-0.047862 | pearson=0.363946
+tokenizer_last  | best_token=298 (img[9,10]) | mse=0.001720 | r2=-0.116471 | pearson=-0.447874
+raw_pose_yaw_full | mse=0.008442 | r2=-4.480608 | pearson=-0.144491
+raw_pose_yaw_past | mse=1.989510 | r2=-1290.571777 | pearson=-0.004801
+==========================================
+
+===== summary sorted by r2: future_speed =====
+time_space_10   | best_token= 96 (img[2,29]) | mse=0.031093 | r2=-0.049995 | pearson=0.024662
+time_space_1    | best_token=108 (img[3,9]) | mse=0.031112 | r2=-0.050653 | pearson=-0.027202
+time_space_4    | best_token= 75 (img[2,8]) | mse=0.031123 | r2=-0.051026 | pearson=-0.034884
+time_space_8    | best_token=108 (img[3,9]) | mse=0.031127 | r2=-0.051141 | pearson=0.000410
+time_space_5    | best_token= 75 (img[2,8]) | mse=0.031127 | r2=-0.051156 | pearson=-0.028494
+time_space_9    | best_token=365 (img[11,10]) | mse=0.031134 | r2=-0.051379 | pearson=-0.002232
+time_space_7    | best_token= 75 (img[2,8]) | mse=0.031146 | r2=-0.051788 | pearson=-0.028527
+time_space_0    | best_token=492 (img[15,9]) | mse=0.031148 | r2=-0.051850 | pearson=-0.119413
+time_space_3    | best_token= 75 (img[2,8]) | mse=0.031162 | r2=-0.052331 | pearson=-0.061559
+time_space_6    | best_token= 96 (img[2,29]) | mse=0.031163 | r2=-0.052367 | pearson=-0.000638
+ar_3            | best_token= 10 (img[0,7]) | mse=0.031164 | r2=-0.052397 | pearson=0.025467
+time_space_11   | best_token= 10 (img[0,7]) | mse=0.031167 | r2=-0.052500 | pearson=-0.004421
+next_state_hidden | best_token= 10 (img[0,7]) | mse=0.031167 | r2=-0.052505 | pearson=-0.004460
+ar_1            | best_token= 96 (img[2,29]) | mse=0.031171 | r2=-0.052653 | pearson=-0.046081
+ar_5            | best_token= 10 (img[0,7]) | mse=0.031172 | r2=-0.052683 | pearson=0.082243
+ar_0            | best_token= 96 (img[2,29]) | mse=0.031178 | r2=-0.052889 | pearson=-0.082853
+tokenizer_last  | best_token=116 (img[3,20]) | mse=0.031183 | r2=-0.053055 | pearson=-0.031849
+time_space_2    | best_token= 32 (img[0,29]) | mse=0.031189 | r2=-0.053232 | pearson=-0.032936
+ar_2            | best_token= 10 (img[0,7]) | mse=0.031199 | r2=-0.053576 | pearson=0.084614
+ar_4            | best_token= 10 (img[0,7]) | mse=0.031211 | r2=-0.053986 | pearson=0.002335
+raw_pose_yaw_full | mse=0.243412 | r2=-7.219973 | pearson=-0.108570
+raw_pose_yaw_past | mse=38.070854 | r2=-1284.646973 | pearson=-0.003414
+==========================================
+
+===== summary sorted by r2: future_yaw_rate =====
+time_space_5    | best_token= 23 (img[0,20]) | mse=0.000939 | r2=0.374320 | pearson=0.625919
+ar_0            | best_token= 13 (img[0,10]) | mse=0.001178 | r2=0.214911 | pearson=0.468341
+time_space_3    | best_token=455 (img[14,4]) | mse=0.001188 | r2=0.208666 | pearson=0.538339
+tokenizer_last  | best_token=485 (img[15,5]) | mse=0.001234 | r2=0.178038 | pearson=0.436927
+ar_5            | best_token= 46 (img[1,11]) | mse=0.001297 | r2=0.136078 | pearson=0.449641
+time_space_6    | best_token=490 (img[15,7]) | mse=0.001304 | r2=0.131339 | pearson=0.382513
+ar_2            | best_token=498 (img[15,15]) | mse=0.001310 | r2=0.127101 | pearson=0.402262
+time_space_7    | best_token= 65 (img[1,30]) | mse=0.001313 | r2=0.125103 | pearson=0.426129
+time_space_4    | best_token= 23 (img[0,20]) | mse=0.001324 | r2=0.117958 | pearson=0.371827
+time_space_2    | best_token=429 (img[13,10]) | mse=0.001329 | r2=0.114795 | pearson=0.408154
+time_space_1    | best_token=487 (img[15,4]) | mse=0.001344 | r2=0.104428 | pearson=0.402992
+ar_4            | best_token= 46 (img[1,11]) | mse=0.001347 | r2=0.102717 | pearson=0.452343
+ar_1            | best_token=498 (img[15,15]) | mse=0.001350 | r2=0.100352 | pearson=0.416897
+time_space_0    | best_token=499 (img[15,16]) | mse=0.001368 | r2=0.088780 | pearson=0.480291
+time_space_8    | best_token= 65 (img[1,30]) | mse=0.001381 | r2=0.080245 | pearson=0.380216
+time_space_11   | best_token=500 (img[15,17]) | mse=0.001399 | r2=0.068165 | pearson=0.381407
+time_space_10   | best_token=127 (img[3,28]) | mse=0.001406 | r2=0.063004 | pearson=0.382321
+next_state_hidden | best_token=  0 (yaw) | mse=0.001438 | r2=0.041956 | pearson=0.310085
+time_space_9    | best_token=106 (img[3,7]) | mse=0.001466 | r2=0.023514 | pearson=0.344027
+ar_3            | best_token= 14 (img[0,11]) | mse=0.001485 | r2=0.010794 | pearson=0.238724
+raw_pose_yaw_full | mse=0.008873 | r2=-4.911264 | pearson=0.024467
+raw_pose_yaw_past | mse=0.703812 | r2=-467.874207 | pearson=0.013312
+==========================================
