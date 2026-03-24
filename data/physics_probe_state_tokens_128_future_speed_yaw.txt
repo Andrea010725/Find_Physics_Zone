@@ -1,0 +1,58 @@
+feature_path: ./data/physics_features_tokenwise_128_fp16.pt
+result_path: ./data/physics_probe_state_tokens_128_future_speed_yaw.pt
+num_samples: 128
+num_groups: 3
+
+target stats:
+  future_speed: mean=0.040247, std=0.172082, min=0.000030, max=1.181101
+  future_yaw_rate: mean=-0.003452, std=0.038744, min=-0.310446, max=0.088530
+
+===== summary sorted by r2: future_speed =====
+tokenizer_last  | best_token=116 (img[3,20]) | mse=0.031183 | r2=-0.053055 | pearson=-0.031849
+time_space_4    | token_group=yaw+pose_x+pose_y | mse=0.031344 | r2=-0.058468 | pearson=-0.142936
+time_space_3    | token_group=yaw+pose_x+pose_y | mse=0.031347 | r2=-0.058593 | pearson=-0.113705
+time_space_2    | token_group=yaw+pose_x+pose_y | mse=0.031380 | r2=-0.059704 | pearson=-0.130818
+time_space_0    | token_group=yaw+pose_x+pose_y | mse=0.031409 | r2=-0.060674 | pearson=-0.116224
+time_space_1    | token_group=yaw+pose_x+pose_y | mse=0.031419 | r2=-0.061021 | pearson=-0.212595
+time_space_5    | token_group=yaw+pose_x+pose_y | mse=0.031501 | r2=-0.063778 | pearson=-0.178540
+time_space_9    | token_group=yaw+pose_x+pose_y | mse=0.031582 | r2=-0.066517 | pearson=-0.193048
+next_state_hidden | token_group=yaw+pose_x+pose_y | mse=0.031582 | r2=-0.066522 | pearson=-0.191653
+ar_1            | token_group=yaw+pose_x+pose_y | mse=0.031591 | r2=-0.066814 | pearson=-0.210653
+ar_2            | token_group=yaw+pose_x+pose_y | mse=0.031592 | r2=-0.066848 | pearson=-0.209109
+ar_5            | token_group=yaw+pose_x+pose_y | mse=0.031602 | r2=-0.067204 | pearson=-0.206899
+time_space_7    | token_group=yaw+pose_x+pose_y | mse=0.031605 | r2=-0.067281 | pearson=-0.206069
+ar_0            | token_group=yaw+pose_x+pose_y | mse=0.031621 | r2=-0.067838 | pearson=-0.213383
+time_space_11   | token_group=yaw+pose_x+pose_y | mse=0.031629 | r2=-0.068100 | pearson=-0.191671
+time_space_6    | token_group=yaw+pose_x+pose_y | mse=0.031646 | r2=-0.068669 | pearson=-0.188749
+ar_3            | token_group=yaw+pose_x+pose_y | mse=0.031692 | r2=-0.070224 | pearson=-0.203011
+time_space_8    | token_group=yaw+pose_x+pose_y | mse=0.031711 | r2=-0.070876 | pearson=-0.205387
+ar_4            | token_group=yaw+pose_x+pose_y | mse=0.031722 | r2=-0.071239 | pearson=-0.208165
+time_space_10   | token_group=yaw+pose_x+pose_y | mse=0.031767 | r2=-0.072774 | pearson=-0.195452
+raw_pose_yaw_full | mse=0.243412 | r2=-7.219973 | pearson=-0.108570
+raw_pose_yaw_past | mse=38.070854 | r2=-1284.646973 | pearson=-0.003414
+==========================================
+
+===== summary sorted by r2: future_yaw_rate =====
+tokenizer_last  | best_token=485 (img[15,5]) | mse=0.001234 | r2=0.178038 | pearson=0.436927
+time_space_6    | token_group=yaw+pose_x+pose_y | mse=0.001471 | r2=0.019983 | pearson=0.204176
+time_space_5    | token_group=yaw+pose_x+pose_y | mse=0.001612 | r2=-0.074041 | pearson=0.105948
+time_space_3    | token_group=yaw+pose_x+pose_y | mse=0.001635 | r2=-0.089410 | pearson=0.286908
+time_space_2    | token_group=yaw+pose_x+pose_y | mse=0.001638 | r2=-0.091385 | pearson=0.054421
+time_space_10   | token_group=yaw+pose_x+pose_y | mse=0.001645 | r2=-0.096208 | pearson=-0.012948
+time_space_4    | token_group=yaw+pose_x+pose_y | mse=0.001656 | r2=-0.103148 | pearson=0.220109
+time_space_7    | token_group=yaw+pose_x+pose_y | mse=0.001668 | r2=-0.111306 | pearson=0.190927
+ar_5            | token_group=yaw+pose_x+pose_y | mse=0.001671 | r2=-0.113008 | pearson=0.067236
+time_space_9    | token_group=yaw+pose_x+pose_y | mse=0.001701 | r2=-0.133090 | pearson=-0.099710
+time_space_11   | token_group=yaw+pose_x+pose_y | mse=0.001730 | r2=-0.152606 | pearson=-0.175869
+time_space_8    | token_group=yaw+pose_x+pose_y | mse=0.001803 | r2=-0.201005 | pearson=0.017361
+time_space_1    | token_group=yaw+pose_x+pose_y | mse=0.001810 | r2=-0.205495 | pearson=-0.041285
+next_state_hidden | token_group=yaw+pose_x+pose_y | mse=0.001810 | r2=-0.205616 | pearson=-0.279941
+ar_1            | token_group=yaw+pose_x+pose_y | mse=0.001812 | r2=-0.207094 | pearson=-0.166087
+ar_3            | token_group=yaw+pose_x+pose_y | mse=0.001883 | r2=-0.254617 | pearson=-0.240176
+time_space_0    | token_group=yaw+pose_x+pose_y | mse=0.001889 | r2=-0.258381 | pearson=-0.011270
+ar_4            | token_group=yaw+pose_x+pose_y | mse=0.001894 | r2=-0.261925 | pearson=-0.296043
+ar_2            | token_group=yaw+pose_x+pose_y | mse=0.001895 | r2=-0.262703 | pearson=-0.249999
+ar_0            | token_group=yaw+pose_x+pose_y | mse=0.001937 | r2=-0.290723 | pearson=-0.255029
+raw_pose_yaw_full | mse=0.008873 | r2=-4.911264 | pearson=0.024467
+raw_pose_yaw_past | mse=0.703812 | r2=-467.874207 | pearson=0.013312
+==========================================

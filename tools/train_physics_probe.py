@@ -54,6 +54,13 @@ def parse_args():
         default=None,
         help="Optional subset of target keys to evaluate. Defaults to all physics regression targets.",
     )
+    parser.add_argument(
+        "--token_readout",
+        type=str,
+        default="single",
+        choices=["single", "state_tokens"],
+        help="How to read 3D token features. `single` keeps the current per-token probe; `state_tokens` concatenates yaw/pose_x/pose_y tokens.",
+    )
     return parser.parse_args()
 
 
@@ -189,10 +196,38 @@ def evaluate_tokenwise_layer_regression(layer_name, X, y, groups, alpha=1.0, n_s
     best_token = max(token_results, key=lambda item: item["r2"])
     return {
         "feature_ndim": 3,
+        "readout_mode": "single",
         "num_tokens": int(num_tokens),
         "token_results": token_results,
         "best_token": dict(best_token),
     }
+
+
+def layer_supports_state_tokens(layer_name):
+    return (
+        layer_name.startswith("time_space_")
+        or layer_name == "next_state_hidden"
+        or layer_name.startswith("ar_")
+    )
+
+
+def evaluate_state_token_layer_regression(layer_name, X, y, groups, alpha=1.0, n_splits=5):
+    if X.shape[1] < 3:
+        raise ValueError(
+            f"Layer {layer_name}: state_tokens readout expects at least 3 tokens, got {X.shape}"
+        )
+    X_state = X[:, :3, :].reshape(X.shape[0], -1)
+    metric = evaluate_one_layer_regression(
+        X=X_state,
+        y=y,
+        groups=groups,
+        alpha=alpha,
+        n_splits=n_splits,
+    )
+    metric["feature_ndim"] = 2
+    metric["readout_mode"] = "state_tokens"
+    metric["token_group"] = "yaw+pose_x+pose_y"
+    return metric
 
 
 def get_summary_metric(metric_dict):
@@ -207,6 +242,14 @@ def format_metric_line(layer_name, metric_dict):
         return (
             f"{layer_name:15s} | "
             f"best_token={summary_metric['token_idx']:3d} ({summary_metric['token_name']}) | "
+            f"mse={summary_metric['mse']:.6f} | "
+            f"r2={summary_metric['r2']:.6f} | "
+            f"pearson={summary_metric['pearson']:.6f}"
+        )
+    if summary_metric.get("token_group"):
+        return (
+            f"{layer_name:15s} | "
+            f"token_group={summary_metric['token_group']} | "
             f"mse={summary_metric['mse']:.6f} | "
             f"r2={summary_metric['r2']:.6f} | "
             f"pearson={summary_metric['pearson']:.6f}"
@@ -287,6 +330,7 @@ def main():
     print("num groups =", len(np.unique(groups)))
     print("feature_mode =", feature_mode)
     print("targets =", list(targets.keys()))
+    print("token_readout =", args.token_readout)
     print("target stats:")
     for name, y in targets.items():
         print(
@@ -316,15 +360,26 @@ def main():
                     n_splits=args.n_splits,
                 )
             else:
-                print(f"{layer_name:15s} | tokenwise layer with {X.shape[1]} tokens")
-                layer_result = evaluate_tokenwise_layer_regression(
-                    layer_name=layer_name,
-                    X=X,
-                    y=y,
-                    groups=groups,
-                    alpha=args.alpha,
-                    n_splits=args.n_splits,
-                )
+                if args.token_readout == "state_tokens" and layer_supports_state_tokens(layer_name):
+                    print(f"{layer_name:15s} | state_tokens readout using yaw/pose_x/pose_y")
+                    layer_result = evaluate_state_token_layer_regression(
+                        layer_name=layer_name,
+                        X=X,
+                        y=y,
+                        groups=groups,
+                        alpha=args.alpha,
+                        n_splits=args.n_splits,
+                    )
+                else:
+                    print(f"{layer_name:15s} | tokenwise layer with {X.shape[1]} tokens")
+                    layer_result = evaluate_tokenwise_layer_regression(
+                        layer_name=layer_name,
+                        X=X,
+                        y=y,
+                        groups=groups,
+                        alpha=args.alpha,
+                        n_splits=args.n_splits,
+                    )
             results[target_name][layer_name] = layer_result
 
             print(format_metric_line(layer_name, layer_result))

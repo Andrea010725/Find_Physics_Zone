@@ -117,7 +117,7 @@ def infer_planning_head_families(label_keys):
             if key in label_key_set
         ],
         "endpoint_head": [
-            key for key in ["endpoint_lateral_disp", "endpoint_forward_progress", "endpoint_heading"]
+            key for key in ["endpoint_lateral_disp", "endpoint_forward_progress"]
             if key in label_key_set
         ],
         "geometry_head": [
@@ -127,6 +127,17 @@ def infer_planning_head_families(label_keys):
         "rollout_head": rollout_keys,
     }
     return {name: keys for name, keys in families.items() if keys}
+
+
+def normalize_planning_head_families(head_families):
+    normalized = {}
+    for family_name, family_keys in head_families.items():
+        keys = list(family_keys)
+        if family_name == "endpoint_head":
+            keys = [key for key in keys if key != "endpoint_heading"]
+        if keys:
+            normalized[family_name] = keys
+    return normalized
 
 
 def build_targets(labels, head_families):
@@ -315,6 +326,7 @@ def main():
     groups = build_groups(meta)
 
     head_families = data.get("planning_head_families") or infer_planning_head_families(labels.keys())
+    head_families = normalize_planning_head_families(head_families)
     if args.families is not None:
         head_families = {name: keys for name, keys in head_families.items() if name in set(args.families)}
     if not head_families:

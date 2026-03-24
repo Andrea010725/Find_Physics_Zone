@@ -574,6 +574,10 @@ def extract_features_streaming(
                         meta[k][0] = sample[k]
 
         if i != 0:
+            for layer_name, feat in raw_baselines.items():
+                feat = cast_feature_dtype(feat, feature_dtype)
+                layer_features[layer_name][i] = feat
+
             for h in hidden_states:
                 layer_name = h["name"]
                 feat = pool_hidden_state(h, effective_frames=effective_frames, mode=pool_mode)

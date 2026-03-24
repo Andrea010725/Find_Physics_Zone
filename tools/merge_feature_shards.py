@@ -27,6 +27,14 @@ def concat_meta(values):
     return merged
 
 
+def ensure_same(name, values):
+    first = values[0]
+    for value in values[1:]:
+        if value != first:
+            raise ValueError(f"{name} differs across shards")
+    return first
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--pattern", type=str, required=True)
@@ -40,7 +48,18 @@ def main():
     feature_mode = shard_data[0]["feature_mode"]
     feature_dtype = shard_data[0]["feature_dtype"]
     probe_sample_format = shard_data[0]["probe_sample_format"]
-    stage_semantics = shard_data[0]["stage_semantics"]
+    planning_head_families = ensure_same(
+        "planning_head_families",
+        [shard.get("planning_head_families", {}) for shard in shard_data],
+    )
+    label_keys = ensure_same(
+        "label_keys",
+        [shard.get("label_keys", []) for shard in shard_data],
+    )
+    stage_semantics = ensure_same(
+        "stage_semantics",
+        [shard["stage_semantics"] for shard in shard_data],
+    )
 
     layer_names = sorted(shard_data[0]["layer_features"].keys())
     for shard in shard_data[1:]:
@@ -78,7 +97,19 @@ def main():
         "feature_mode": feature_mode,
         "feature_dtype": feature_dtype,
         "probe_sample_format": probe_sample_format,
+        "planning_head_families": planning_head_families,
+        "label_keys": label_keys,
         "stage_semantics": stage_semantics,
+        "slice_range": {
+            "start_index": min(
+                shard.get("slice_range", {}).get("start_index", 0)
+                for shard in shard_data
+            ),
+            "end_index": max(
+                shard.get("slice_range", {}).get("end_index", 0)
+                for shard in shard_data
+            ),
+        },
         "layer_features": merged_layer_features,
         "labels": merged_labels,
         "meta": merged_meta,
