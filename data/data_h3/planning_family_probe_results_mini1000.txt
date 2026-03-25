@@ -1,0 +1,131 @@
+feature_path: ./data/data_h3/physics_features_mini1000.pt
+result_path: ./data/data_h3/planning_family_probe_results_mini1000.pt
+num_samples: 1000
+num_groups: 13
+feature_mode: all_mean_last_t
+
+planning head families:
+  control_head: control_delta_v, control_cum_delta_yaw
+  endpoint_head: endpoint_lateral_disp, endpoint_forward_progress
+  geometry_head: geometry_mean_curvature, geometry_integrated_curvature
+  rollout_head: rollout_kp1_x, rollout_kp1_y, rollout_kp2_x, rollout_kp2_y, rollout_kp3_x, rollout_kp3_y
+
+target stats: control_head
+  control_delta_v: mean=0.013128, std=0.355260, min=-0.937525, max=1.251728
+  control_cum_delta_yaw: mean=0.073737, std=0.274287, min=-0.826701, max=1.342220
+
+target stats: endpoint_head
+  endpoint_lateral_disp: mean=0.003623, std=0.019128, min=-0.059512, max=0.070454
+  endpoint_forward_progress: mean=3.901082, std=2.718541, min=-0.029149, max=8.282629
+
+target stats: geometry_head
+  geometry_mean_curvature: mean=0.001229, std=0.122185, min=-1.312437, max=1.024598
+  geometry_integrated_curvature: mean=0.003339, std=0.003727, min=0.000014, max=0.023426
+
+target stats: rollout_head
+  rollout_kp1_x: mean=1.299497, std=0.907816, min=-0.015063, max=2.770509
+  rollout_kp1_y: mean=0.000327, std=0.004987, min=-0.018418, max=0.018639
+  rollout_kp2_x: mean=2.599844, std=1.814050, min=-0.023023, max=5.530615
+  rollout_kp2_y: mean=0.001542, std=0.011018, min=-0.037484, max=0.038812
+  rollout_kp3_x: mean=3.901082, std=2.718541, min=-0.029149, max=8.282629
+  rollout_kp3_y: mean=0.003623, std=0.019128, min=-0.059512, max=0.070454
+
+===== summary sorted by r2_vw: control_head =====
+raw_pose_yaw_full | mse=0.020817 | r2_vw=0.793326 | r2_mean=0.812261 | pearson_mean=0.901851
+raw_pose_yaw_past | mse=0.036378 | r2_vw=0.638830 | r2_mean=0.650414 | pearson_mean=0.806824
+time_space_9    | mse=0.088927 | r2_vw=0.117097 | r2_mean=0.100480 | pearson_mean=0.500866
+time_space_8    | mse=0.091601 | r2_vw=0.090550 | r2_mean=0.047301 | pearson_mean=0.523381
+ar_3            | mse=0.096232 | r2_vw=0.044568 | r2_mean=0.089126 | pearson_mean=0.495390
+time_space_7    | mse=0.099477 | r2_vw=0.012360 | r2_mean=0.049860 | pearson_mean=0.485974
+ar_2            | mse=0.107651 | r2_vw=-0.068804 | r2_mean=-0.004048 | pearson_mean=0.490589
+ar_4            | mse=0.108090 | r2_vw=-0.073163 | r2_mean=0.005322 | pearson_mean=0.448617
+ar_5            | mse=0.108102 | r2_vw=-0.073281 | r2_mean=-0.021223 | pearson_mean=0.427785
+ar_1            | mse=0.111080 | r2_vw=-0.102846 | r2_mean=-0.014587 | pearson_mean=0.492885
+ar_0            | mse=0.111821 | r2_vw=-0.110203 | r2_mean=-0.047232 | pearson_mean=0.485816
+time_space_10   | mse=0.118916 | r2_vw=-0.180638 | r2_mean=-0.163852 | pearson_mean=0.385645
+next_state_hidden | mse=0.124551 | r2_vw=-0.236594 | r2_mean=-0.223917 | pearson_mean=0.371340
+time_space_11   | mse=0.124958 | r2_vw=-0.240632 | r2_mean=-0.216781 | pearson_mean=0.367471
+tokenizer_last  | mse=0.125779 | r2_vw=-0.248783 | r2_mean=-0.207195 | pearson_mean=-0.056267
+time_space_0    | mse=0.132445 | r2_vw=-0.314959 | r2_mean=-0.269259 | pearson_mean=0.315246
+time_space_1    | mse=0.144989 | r2_vw=-0.439503 | r2_mean=-0.437596 | pearson_mean=0.330250
+time_space_2    | mse=0.155499 | r2_vw=-0.543849 | r2_mean=-0.488326 | pearson_mean=0.348213
+time_space_6    | mse=0.181957 | r2_vw=-0.806538 | r2_mean=-0.672256 | pearson_mean=0.316293
+time_space_5    | mse=0.186803 | r2_vw=-0.854650 | r2_mean=-0.853436 | pearson_mean=0.355159
+time_space_3    | mse=0.196541 | r2_vw=-0.951338 | r2_mean=-0.893087 | pearson_mean=0.286755
+time_space_4    | mse=0.233063 | r2_vw=-1.313940 | r2_mean=-1.240792 | pearson_mean=0.277659
+============================================
+
+===== summary sorted by r2_vw: endpoint_head =====
+raw_pose_yaw_full | mse=0.002290 | r2_vw=0.999381 | r2_mean=0.913097 | pearson_mean=0.954493
+raw_pose_yaw_past | mse=0.005895 | r2_vw=0.998405 | r2_mean=0.790278 | pearson_mean=0.881170
+time_space_0    | mse=0.061890 | r2_vw=0.983252 | r2_mean=-0.015980 | pearson_mean=0.560788
+time_space_2    | mse=0.102158 | r2_vw=0.972355 | r2_mean=-0.248996 | pearson_mean=0.569306
+time_space_1    | mse=0.102804 | r2_vw=0.972181 | r2_mean=-0.070531 | pearson_mean=0.618484
+ar_4            | mse=0.152447 | r2_vw=0.958747 | r2_mean=0.226877 | pearson_mean=0.650265
+ar_0            | mse=0.153724 | r2_vw=0.958401 | r2_mean=0.215696 | pearson_mean=0.673104
+time_space_3    | mse=0.154892 | r2_vw=0.958085 | r2_mean=-0.440404 | pearson_mean=0.627595
+ar_2            | mse=0.158228 | r2_vw=0.957183 | r2_mean=0.373515 | pearson_mean=0.711576
+ar_1            | mse=0.162287 | r2_vw=0.956084 | r2_mean=0.309770 | pearson_mean=0.689942
+time_space_9    | mse=0.163034 | r2_vw=0.955882 | r2_mean=0.333423 | pearson_mean=0.705784
+ar_5            | mse=0.165011 | r2_vw=0.955347 | r2_mean=0.234522 | pearson_mean=0.640549
+ar_3            | mse=0.172318 | r2_vw=0.953370 | r2_mean=0.356143 | pearson_mean=0.697845
+time_space_8    | mse=0.178610 | r2_vw=0.951667 | r2_mean=0.118042 | pearson_mean=0.655759
+time_space_10   | mse=0.188434 | r2_vw=0.949009 | r2_mean=0.203191 | pearson_mean=0.667412
+time_space_4    | mse=0.193397 | r2_vw=0.947666 | r2_mean=-0.064655 | pearson_mean=0.668680
+time_space_6    | mse=0.193880 | r2_vw=0.947535 | r2_mean=0.026504 | pearson_mean=0.660670
+time_space_7    | mse=0.203886 | r2_vw=0.944827 | r2_mean=0.087744 | pearson_mean=0.640724
+next_state_hidden | mse=0.235865 | r2_vw=0.936174 | r2_mean=-0.023632 | pearson_mean=0.607222
+time_space_11   | mse=0.241051 | r2_vw=0.934770 | r2_mean=-0.043452 | pearson_mean=0.605059
+time_space_5    | mse=0.327075 | r2_vw=0.911492 | r2_mean=-0.217685 | pearson_mean=0.625052
+tokenizer_last  | mse=1.682796 | r2_vw=0.544626 | r2_mean=0.246982 | pearson_mean=0.446683
+============================================
+
+===== summary sorted by r2_vw: geometry_head =====
+raw_pose_yaw_full | mse=0.007472 | r2_vw=-0.000075 | r2_mean=0.137735 | pearson_mean=0.282501
+raw_pose_yaw_past | mse=0.007472 | r2_vw=-0.000114 | r2_mean=0.108338 | pearson_mean=0.249960
+tokenizer_last  | mse=0.007504 | r2_vw=-0.004349 | r2_mean=0.067160 | pearson_mean=0.201943
+time_space_0    | mse=0.056574 | r2_vw=-6.572047 | r2_mean=-3.232348 | pearson_mean=0.278923
+ar_5            | mse=0.088658 | r2_vw=-10.866186 | r2_mean=-5.348309 | pearson_mean=0.302611
+ar_4            | mse=0.102112 | r2_vw=-12.666971 | r2_mean=-6.247764 | pearson_mean=0.287027
+ar_2            | mse=0.104344 | r2_vw=-12.965644 | r2_mean=-6.497791 | pearson_mean=0.230839
+ar_0            | mse=0.106752 | r2_vw=-13.288009 | r2_mean=-6.945102 | pearson_mean=0.156380
+time_space_1    | mse=0.111691 | r2_vw=-13.949039 | r2_mean=-7.314306 | pearson_mean=0.127293
+time_space_2    | mse=0.118631 | r2_vw=-14.877828 | r2_mean=-7.769612 | pearson_mean=0.150651
+ar_3            | mse=0.126834 | r2_vw=-15.975809 | r2_mean=-8.029087 | pearson_mean=0.221171
+ar_1            | mse=0.129630 | r2_vw=-16.349958 | r2_mean=-8.239704 | pearson_mean=0.203951
+time_space_4    | mse=0.187019 | r2_vw=-24.031107 | r2_mean=-12.378908 | pearson_mean=0.176846
+time_space_11   | mse=0.209877 | r2_vw=-27.090481 | r2_mean=-13.841256 | pearson_mean=0.142553
+next_state_hidden | mse=0.217819 | r2_vw=-28.153473 | r2_mean=-14.386047 | pearson_mean=0.145193
+time_space_9    | mse=0.230573 | r2_vw=-29.860397 | r2_mean=-15.206322 | pearson_mean=0.114318
+time_space_3    | mse=0.231803 | r2_vw=-30.025045 | r2_mean=-15.377720 | pearson_mean=0.168969
+time_space_8    | mse=0.235092 | r2_vw=-30.465322 | r2_mean=-15.412207 | pearson_mean=0.191128
+time_space_5    | mse=0.274316 | r2_vw=-35.715179 | r2_mean=-18.259422 | pearson_mean=0.187027
+time_space_10   | mse=0.280855 | r2_vw=-36.590321 | r2_mean=-18.412048 | pearson_mean=0.189920
+time_space_7    | mse=0.288579 | r2_vw=-37.624104 | r2_mean=-19.054586 | pearson_mean=0.167923
+time_space_6    | mse=0.336458 | r2_vw=-44.032394 | r2_mean=-22.346461 | pearson_mean=0.175623
+============================================
+
+===== summary sorted by r2_vw: rollout_head =====
+raw_pose_yaw_full | mse=0.000964 | r2_vw=0.999497 | r2_mean=0.954959 | pearson_mean=0.976594
+raw_pose_yaw_past | mse=0.002621 | r2_vw=0.998633 | r2_mean=0.789831 | pearson_mean=0.880826
+time_space_0    | mse=0.029955 | r2_vw=0.984379 | r2_mean=-0.330772 | pearson_mean=0.517140
+time_space_1    | mse=0.050924 | r2_vw=0.973444 | r2_mean=-0.283978 | pearson_mean=0.577596
+time_space_2    | mse=0.050985 | r2_vw=0.973412 | r2_mean=-0.841523 | pearson_mean=0.522169
+time_space_3    | mse=0.078088 | r2_vw=0.959279 | r2_mean=-1.312609 | pearson_mean=0.577645
+ar_4            | mse=0.078646 | r2_vw=0.958988 | r2_mean=-0.109960 | pearson_mean=0.611156
+ar_0            | mse=0.079667 | r2_vw=0.958456 | r2_mean=-0.012212 | pearson_mean=0.631896
+ar_2            | mse=0.081286 | r2_vw=0.957611 | r2_mean=0.036703 | pearson_mean=0.643414
+time_space_9    | mse=0.083500 | r2_vw=0.956457 | r2_mean=-0.187580 | pearson_mean=0.660880
+ar_1            | mse=0.083885 | r2_vw=0.956256 | r2_mean=-0.020857 | pearson_mean=0.637402
+ar_5            | mse=0.084333 | r2_vw=0.956023 | r2_mean=0.073451 | pearson_mean=0.610443
+ar_3            | mse=0.088735 | r2_vw=0.953727 | r2_mean=0.096129 | pearson_mean=0.643856
+time_space_8    | mse=0.092241 | r2_vw=0.951899 | r2_mean=-0.527684 | pearson_mean=0.593548
+time_space_10   | mse=0.096320 | r2_vw=0.949772 | r2_mean=-0.333010 | pearson_mean=0.638650
+time_space_4    | mse=0.097323 | r2_vw=0.949249 | r2_mean=-1.942468 | pearson_mean=0.579927
+time_space_6    | mse=0.100105 | r2_vw=0.947798 | r2_mean=-0.730440 | pearson_mean=0.600946
+time_space_7    | mse=0.105531 | r2_vw=0.944968 | r2_mean=-0.814202 | pearson_mean=0.582269
+next_state_hidden | mse=0.120795 | r2_vw=0.937009 | r2_mean=-0.326550 | pearson_mean=0.588834
+time_space_11   | mse=0.123206 | r2_vw=0.935751 | r2_mean=-0.379432 | pearson_mean=0.584840
+time_space_5    | mse=0.166412 | r2_vw=0.913220 | r2_mean=-1.180348 | pearson_mean=0.532141
+tokenizer_last  | mse=0.872631 | r2_vw=0.544947 | r2_mean=0.237361 | pearson_mean=0.419526
+============================================
