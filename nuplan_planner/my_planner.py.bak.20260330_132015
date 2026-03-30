@@ -26,16 +26,6 @@ from nuplan.planning.simulation.trajectory.interpolated_trajectory import Interp
 
 
 class MyPlanner(AbstractPlanner):
-    _SHARED_MODEL = None
-    _SHARED_TOKENIZER = None
-    _SHARED_ARGS = None
-    _SHARED_DEVICE = None
-
-    _SHARED_MODEL = None
-    _SHARED_TOKENIZER = None
-    _SHARED_ARGS = None
-    _SHARED_DEVICE = None
-
     """
     Planner wrapper that runs DrivingWorld inside the official nuPlan planner API.
 
@@ -93,23 +83,6 @@ class MyPlanner(AbstractPlanner):
         self._load_parameters = None
         self._indices_to_pose = None
         self._indices_to_yaws = None
-
-
-    def __getstate__(self):
-        """
-        Make planner pickle-safe for nuPlan simulation log saving.
-        Heavy / non-serializable objects are dropped from the saved state.
-        """
-        state = self.__dict__.copy()
-        for key in [
-            "_args",
-            "_model",
-            "_tokenizer",
-            "_load_parameters",
-        ]:
-            if key in state:
-                state[key] = None
-        return state
 
     def name(self) -> str:
         return "DrivingWorldPlanner"
@@ -182,51 +155,19 @@ class MyPlanner(AbstractPlanner):
         if self._model is not None and self._tokenizer is not None:
             return
 
-        from Find_Physics_Zone.models.model import TrainTransformers
-        from Find_Physics_Zone.modules.tokenizers.model_tokenizer import Tokenizer
-        from Find_Physics_Zone.modules.tokenizers.pose_tokenizer import indices_to_pose, indices_to_yaws
-        from Find_Physics_Zone.utils.config_utils import Config
-        from Find_Physics_Zone.utils.running import load_parameters
-
-        import os
-        print("DEBUG _load_world_model pid:", os.getpid())
-        print("DEBUG torch.cuda.is_available():", torch.cuda.is_available())
-        print("DEBUG torch.cuda.device_count():", torch.cuda.device_count())
-        print("DEBUG CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
-        print("DEBUG self.device:", self.device)
-        print("DEBUG repo_root:", self.repo_root)
-        print("DEBUG model_config_path:", self.model_config_path)
-        print("DEBUG world_model_path:", self.world_model_path)
-        print("DEBUG vq_model_path:", self.vq_model_path)
+        from models.model import TrainTransformers
+        from modules.tokenizers.model_tokenizer import Tokenizer
+        from modules.tokenizers.pose_tokenizer import indices_to_pose, indices_to_yaws
+        from utils.config_utils import Config
+        from utils.running import load_parameters
 
         if not torch.cuda.is_available():
-            raise RuntimeError(
-                "DrivingWorld planner requires CUDA because the model uses CUDA-only buffers. "
-                f"torch.cuda.is_available()={torch.cuda.is_available()}, "
-                f"device_count={torch.cuda.device_count()}, "
-                f"CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES')}"
-            )
+            raise RuntimeError("DrivingWorld planner requires CUDA because the model uses CUDA-only buffers.")
 
         self._device = torch.device(self.device)
-        print("DEBUG resolved torch device:", self._device)
-
         if self._device.type != "cuda":
             raise RuntimeError(f"Expected a CUDA device, got '{self._device}'.")
-
         torch.cuda.set_device(self._device)
-        print("DEBUG current cuda device after set_device:", torch.cuda.current_device())
-
-        if (
-            MyPlanner._SHARED_MODEL is not None
-            and MyPlanner._SHARED_TOKENIZER is not None
-            and MyPlanner._SHARED_ARGS is not None
-        ):
-            print("DEBUG reusing shared world model/tokenizer")
-            self._model = MyPlanner._SHARED_MODEL
-            self._tokenizer = MyPlanner._SHARED_TOKENIZER
-            self._args = MyPlanner._SHARED_ARGS
-            self._device = MyPlanner._SHARED_DEVICE
-            return
 
         config_path = self._resolve_path(self.model_config_path)
         world_model_path = self._resolve_path(self.world_model_path)
@@ -266,12 +207,6 @@ class MyPlanner(AbstractPlanner):
         self._args = args
         self._model = model
         self._tokenizer = tokenizer
-
-        MyPlanner._SHARED_ARGS = self._args
-        MyPlanner._SHARED_MODEL = self._model
-        MyPlanner._SHARED_TOKENIZER = self._tokenizer
-        MyPlanner._SHARED_DEVICE = self._device
-        print("DEBUG stored shared world model/tokenizer")
         self._load_parameters = load_parameters
         self._indices_to_pose = indices_to_pose
         self._indices_to_yaws = indices_to_yaws

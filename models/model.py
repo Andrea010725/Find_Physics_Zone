@@ -5,8 +5,8 @@ import torch.nn as nn
 import torch.nn.functional
 from einops import rearrange
 
-from utils.generat_utils import top_k_sampling, top_p_sampling, pk_sampling
-from modules.tokenizers.pose_tokenizer import poses_to_indices, yaws_to_indices
+from Find_Physics_Zone.utils.generat_utils import top_k_sampling, top_p_sampling, pk_sampling
+from Find_Physics_Zone.modules.tokenizers.pose_tokenizer import poses_to_indices, yaws_to_indices
 
 class TrainTransformers(nn.Module):
     def __init__(

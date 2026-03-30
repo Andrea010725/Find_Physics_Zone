@@ -3,8 +3,8 @@ import torch.nn as nn
 from einops import rearrange
 import torch.nn.functional as F
 
-from utils.rope_2d import *
-from utils.embeddings import get_fourier_embeds_from_coordinates
+from Find_Physics_Zone.utils.rope_2d import *
+from Find_Physics_Zone.utils.embeddings import get_fourier_embeds_from_coordinates
 
 class GPTConfig:
     embd_pdrop = 0.1
@@ -311,12 +311,30 @@ class GPT(nn.Module):
         self.apply(self._init_weights)
         self.config = config
         matrix = torch.tril(torch.ones(condition_frames, condition_frames))
-        time_causal_mask = torch.where(matrix==0, float('-inf'), matrix)
-        time_causal_mask = torch.where(matrix==1, 0, time_causal_mask)
+        time_causal_mask = matrix.to(torch.float32)
+        time_causal_mask = torch.where(
+            matrix == 0,
+            torch.full_like(time_causal_mask, float("-inf")),
+            time_causal_mask,
+        )
+        time_causal_mask = torch.where(
+            matrix == 1,
+            torch.zeros_like(time_causal_mask),
+            time_causal_mask,
+        )
         self.mask_time = time_causal_mask.contiguous().cuda()
         matrix_1 = torch.tril(torch.ones(self.total_token_size, self.total_token_size))
-        seq_causal_mask = torch.where(matrix_1==0, float('-inf'), matrix_1)
-        seq_causal_mask = torch.where(matrix_1==1, 0, seq_causal_mask)
+        seq_causal_mask = matrix_1.to(torch.float32)
+        seq_causal_mask = torch.where(
+            matrix_1 == 0,
+            torch.full_like(seq_causal_mask, float("-inf")),
+            seq_causal_mask,
+        )
+        seq_causal_mask = torch.where(
+            matrix_1 == 1,
+            torch.zeros_like(seq_causal_mask),
+            seq_causal_mask,
+        )
         self.mask_ar = seq_causal_mask.contiguous().cuda()
         self.mask_ar_droppose = torch.clone(self.mask_ar)
         self.mask_ar_droppose[:, 1:1+self.pose_token_size+self.yaw_token_size] = float('-inf')
