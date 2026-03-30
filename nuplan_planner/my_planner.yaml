@@ -1,0 +1,30 @@
+_target_: Find_Physics_Zone.nuplan_planner.my_planner.MyPlanner
+_convert_: all
+
+# Planner horizon. Keep this aligned with the world-model rollout length you want to evaluate.
+horizon_seconds: 8.0
+
+# DrivingWorld was trained on 5 Hz motion/image steps, so 0.2 s is the faithful rollout interval.
+sampling_time: 0.2
+
+# Fallback straight-line speed used only if sensor/model rollout cannot be constructed.
+fallback_speed_mps: 2.0
+
+# Repo/model locations. Absolute paths keep Hydra + nuPlan imports simple.
+repo_root: /Users/zhiwenchen/DrivingWorld
+model_config_path: /Users/zhiwenchen/DrivingWorld/configs/drivingworld_v1/nuplan_action_eval.py
+world_model_path: /Users/zhiwenchen/DrivingWorld/pretrained_models/world_model.pth
+vq_model_path: /Users/zhiwenchen/DrivingWorld/pretrained_models/vqvae.pt
+
+# Runtime options.
+device: cuda:0
+camera_channel: CAM_F0
+use_bfloat16: true
+strict_sensor_check: false
+
+# Keep planner sampling aligned with the repo's current evaluation defaults.
+sampling_mtd: null
+top_k: 30
+temperature_k: 1.0
+top_p: 0.8
+temperature_p: 1.0
