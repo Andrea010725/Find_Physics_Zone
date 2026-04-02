@@ -1,0 +1,77 @@
+{
+  "attention_layer": "ar_3",
+  "hidden_layer": "ar_3",
+  "num_samples": 32,
+  "token_stat": "norm",
+  "targets": {
+    "speed": "future_speed",
+    "offset": "future_lateral_offset",
+    "progress": "future_forward_progress"
+  },
+  "semantic_tokens": [
+    {
+      "semantic": "yaw",
+      "token_idx": 0,
+      "target_key": null,
+      "abs_corr": null,
+      "token_name": "yaw"
+    },
+    {
+      "semantic": "speed",
+      "token_idx": 2,
+      "target_key": "future_speed",
+      "abs_corr": 0.92111107706352,
+      "token_name": "pose_y"
+    },
+    {
+      "semantic": "offset",
+      "token_idx": 444,
+      "target_key": "future_lateral_offset",
+      "abs_corr": 0.5351510170385002,
+      "token_name": "img[13,25]"
+    },
+    {
+      "semantic": "progress",
+      "token_idx": 132,
+      "target_key": "future_forward_progress",
+      "abs_corr": 0.8642761876607473,
+      "token_name": "img[4,1]"
+    }
+  ],
+  "semantic_attention_matrix": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.6116867065429688,
+      0.19228963553905487,
+      0.0,
+      0.0
+    ],
+    [
+      0.2141152173280716,
+      0.007966278120875359,
+      0.0829947292804718,
+      0.00013594432675745338
+    ],
+    [
+      0.15143591165542603,
+      0.0012259023496881127,
+      0.0,
+      0.10683088004589081
+    ]
+  ],
+  "semantic_labels": [
+    "yaw (yaw)",
+    "speed (pose_y)",
+    "offset (img[13,25])",
+    "progress (img[4,1])"
+  ],
+  "output_files": {
+    "semantic_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_layers_n32/ar_3/semantic_attention_ar_3.png",
+    "full_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_layers_n32/ar_3/mean_attention_full_ar_3.png"
+  }
+}

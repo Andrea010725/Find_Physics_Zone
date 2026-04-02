@@ -1,0 +1,84 @@
+feature_path: /home/yanda/Find_Physics_Zone/data/physics_features.pt
+candidate_path: /home/yanda/Find_Physics_Zone/data/target_layer_candidates.json
+num_samples: 1000
+num_groups: 13
+
+===== future_speed =====
+candidates: time_space_0, time_space_1, time_space_2, time_space_3
+single_layer_ridge: r2=0.987134 | pearson=0.993597 | nmae=0.083672
+mean_layer_ridge:   r2=0.980703 | pearson=0.991166 | nmae=0.110734
+depth_selective:    r2=0.969073 | pearson=0.984464 | nmae=0.134149
+attn_residual:      r2=0.966496 | pearson=0.983150 | nmae=0.137828 | gate_mean=0.160597
+delta_depth_vs_single: delta_r2=-0.018061 | delta_nmae=0.050478
+delta_attn_vs_single:  delta_r2=-0.020638 | delta_nmae=0.054156
+depth_weights_mean: time_space_3:0.2869, time_space_2:0.2683, time_space_1:0.2231, time_space_0:0.2216
+attn_weights_mean:  time_space_0:0.3406, time_space_3:0.2623, time_space_2:0.2323, time_space_1:0.1647
+
+===== future_forward_progress =====
+candidates: time_space_0, time_space_1, time_space_2, time_space_3
+single_layer_ridge: r2=0.987129 | pearson=0.993592 | nmae=0.083698
+mean_layer_ridge:   r2=0.980610 | pearson=0.991122 | nmae=0.111153
+depth_selective:    r2=0.964457 | pearson=0.982423 | nmae=0.147390
+attn_residual:      r2=0.966438 | pearson=0.983310 | nmae=0.136472 | gate_mean=0.160676
+delta_depth_vs_single: delta_r2=-0.022672 | delta_nmae=0.063693
+delta_attn_vs_single:  delta_r2=-0.020691 | delta_nmae=0.052775
+depth_weights_mean: time_space_3:0.2889, time_space_2:0.2662, time_space_1:0.2287, time_space_0:0.2163
+attn_weights_mean:  time_space_3:0.5835, time_space_1:0.3804, time_space_2:0.0275, time_space_0:0.0086
+
+===== future_yaw_rate =====
+candidates: ar_5, ar_1
+single_layer_ridge: r2=0.594422 | pearson=0.793212 | nmae=0.483348
+mean_layer_ridge:   r2=0.593964 | pearson=0.793816 | nmae=0.491268
+depth_selective:    r2=0.579993 | pearson=0.778870 | nmae=0.494964
+attn_residual:      r2=0.580253 | pearson=0.769572 | nmae=0.480548 | gate_mean=0.160162
+delta_depth_vs_single: delta_r2=-0.014430 | delta_nmae=0.011616
+delta_attn_vs_single:  delta_r2=-0.014169 | delta_nmae=-0.002799
+depth_weights_mean: ar_1:0.5515, ar_5:0.4485
+attn_weights_mean:  ar_1:0.6800, ar_5:0.3200
+
+===== future_delta_yaw =====
+candidates: ar_5, ar_1
+single_layer_ridge: r2=0.594422 | pearson=0.793212 | nmae=0.483348
+mean_layer_ridge:   r2=0.593963 | pearson=0.793816 | nmae=0.491269
+depth_selective:    r2=0.664761 | pearson=0.824106 | nmae=0.440148
+attn_residual:      r2=0.517295 | pearson=0.738340 | nmae=0.507367 | gate_mean=0.160155
+delta_depth_vs_single: delta_r2=0.070339 | delta_nmae=-0.043200
+delta_attn_vs_single:  delta_r2=-0.077126 | delta_nmae=0.024018
+depth_weights_mean: ar_1:0.5389, ar_5:0.4611
+attn_weights_mean:  ar_1:0.6398, ar_5:0.3602
+
+===== future_lateral_offset =====
+candidates: ar_5
+single_layer_ridge: r2=-1.101440 | pearson=0.192956 | nmae=1.134859
+mean_layer_ridge:   r2=-1.101440 | pearson=0.192956 | nmae=1.134859
+depth_selective:    r2=-0.801312 | pearson=0.159485 | nmae=1.025383
+attn_residual:      r2=-1.104615 | pearson=0.055685 | nmae=1.124470 | gate_mean=0.158180
+delta_depth_vs_single: delta_r2=0.300128 | delta_nmae=-0.109476
+delta_attn_vs_single:  delta_r2=-0.003175 | delta_nmae=-0.010389
+depth_weights_mean: ar_5:1.0000
+attn_weights_mean:  ar_5:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+===== future_speed_delta =====
+candidates: ar_3
+single_layer_ridge: r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+mean_layer_ridge:   r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+depth_selective:    r2=-0.263922 | pearson=0.333054 | nmae=0.886885
+attn_residual:      r2=-0.318089 | pearson=0.276213 | nmae=0.870800 | gate_mean=0.158732
+delta_depth_vs_single: delta_r2=0.001700 | delta_nmae=0.015120
+delta_attn_vs_single:  delta_r2=-0.052467 | delta_nmae=-0.000966
+depth_weights_mean: ar_3:1.0000
+attn_weights_mean:  ar_3:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+===== future_acc =====
+candidates: ar_3
+single_layer_ridge: r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+mean_layer_ridge:   r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+depth_selective:    r2=-0.227115 | pearson=0.347222 | nmae=0.883626
+attn_residual:      r2=-0.266798 | pearson=0.348365 | nmae=0.895802 | gate_mean=0.160310
+delta_depth_vs_single: delta_r2=0.038507 | delta_nmae=0.011861
+delta_attn_vs_single:  delta_r2=-0.001176 | delta_nmae=0.024037
+depth_weights_mean: ar_3:1.0000
+attn_weights_mean:  ar_3:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.

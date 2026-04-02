@@ -3,7 +3,7 @@ import os
 import numpy as np
 import torch
 from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import GroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -24,9 +24,9 @@ def resolve_repo_path(*parts):
 
 data_root = resolve_repo_path("data")
 
-FEATURE_PATH = os.path.join(data_root, "physics_features.pt")
-RESULT_PATH = os.path.join(data_root, "physics_probe_results.pt")
-REPORT_PATH = os.path.join(data_root, "physics_probe_results.txt")
+FEATURE_PATH = os.path.join(data_root, "physics_features_tokenwise.pt")
+RESULT_PATH = os.path.join(data_root, "physics_probe_results_tokenwise.pt")
+REPORT_PATH = os.path.join(data_root, "physics_probe_results_tokenwise.txt")
 
 TARGET_KEYS = [
     "past_avg_speed",
@@ -35,7 +35,23 @@ TARGET_KEYS = [
     "future_speed",
     "future_yaw_rate",
     "future_delta_yaw",
+    "future_forward_progress",
+    "future_lateral_offset",
+    "future_speed_delta",
+    "future_acc",
 ]
+
+TARGET_GROUPS = {
+    "ags": [
+        "future_speed",
+        "future_yaw_rate",
+        "future_delta_yaw",
+        "future_forward_progress",
+        "future_lateral_offset",
+        "future_speed_delta",
+        "future_acc",
+    ],
+}
 
 N_SPLITS = 5
 
@@ -92,11 +108,16 @@ def evaluate_one_layer_regression(X, y, groups, alpha=1.0, n_splits=5):
     y_pred_all = np.array(y_pred_all, dtype=np.float32)
 
     mse = mean_squared_error(y_true_all, y_pred_all)
+    mae = mean_absolute_error(y_true_all, y_pred_all)
     r2 = r2_score(y_true_all, y_pred_all)
     corr = pearson_corr(y_true_all, y_pred_all)
+    target_std = float(np.std(y_true_all))
+    normalized_mae = float(mae / target_std) if target_std >= 1e-12 else 0.0
 
     return {
         "mse": float(mse),
+        "mae": float(mae),
+        "normalized_mae": normalized_mae,
         "r2": float(r2),
         "pearson": float(corr),
         "num_groups": int(unique_groups.size),
@@ -186,18 +207,60 @@ def format_metric_line(layer_name, metric_dict):
             f"{layer_name:15s} | "
             f"best_token={summary_metric['token_idx']:3d} ({summary_metric['token_name']}) | "
             f"mse={summary_metric['mse']:.6f} | "
+            f"mae={summary_metric['mae']:.6f} | "
+            f"nmae={summary_metric['normalized_mae']:.6f} | "
             f"r2={summary_metric['r2']:.6f} | "
             f"pearson={summary_metric['pearson']:.6f}"
         )
     return (
         f"{layer_name:15s} | "
         f"mse={summary_metric['mse']:.6f} | "
+        f"mae={summary_metric['mae']:.6f} | "
+        f"nmae={summary_metric['normalized_mae']:.6f} | "
         f"r2={summary_metric['r2']:.6f} | "
         f"pearson={summary_metric['pearson']:.6f}"
     )
 
 
-def build_report_text(results, targets, groups):
+def build_group_summaries(results, target_groups):
+    group_summaries = {}
+    for group_name, group_targets in target_groups.items():
+        available_targets = [target for target in group_targets if target in results]
+        if not available_targets:
+            continue
+
+        layer_names = list(results[available_targets[0]].keys())
+        per_layer = {}
+        for layer_name in layer_names:
+            metrics = [
+                get_summary_metric(results[target_name][layer_name])
+                for target_name in available_targets
+            ]
+            per_layer[layer_name] = {
+                "num_targets": len(available_targets),
+                "targets": list(available_targets),
+                "mean_mse": float(np.mean([m["mse"] for m in metrics])),
+                "mean_mae": float(np.mean([m["mae"] for m in metrics])),
+                "mean_normalized_mae": float(np.mean([m["normalized_mae"] for m in metrics])),
+                "mean_r2": float(np.mean([m["r2"] for m in metrics])),
+                "mean_pearson": float(np.mean([m["pearson"] for m in metrics])),
+            }
+        group_summaries[group_name] = per_layer
+    return group_summaries
+
+
+def format_group_metric_line(layer_name, metric_dict):
+    return (
+        f"{layer_name:15s} | "
+        f"mean_mse={metric_dict['mean_mse']:.6f} | "
+        f"mean_mae={metric_dict['mean_mae']:.6f} | "
+        f"mean_nmae={metric_dict['mean_normalized_mae']:.6f} | "
+        f"mean_r2={metric_dict['mean_r2']:.6f} | "
+        f"mean_pearson={metric_dict['mean_pearson']:.6f}"
+    )
+
+
+def build_report_text(results, targets, groups, target_groups=None):
     lines = []
     lines.append(f"feature_path: {FEATURE_PATH}")
     lines.append(f"result_path: {RESULT_PATH}")
@@ -222,6 +285,20 @@ def build_report_text(results, targets, groups):
         for layer_name, metric_dict in sorted_items:
             lines.append(format_metric_line(layer_name, metric_dict))
         lines.append("==========================================")
+
+    if target_groups:
+        group_summaries = build_group_summaries(results, target_groups)
+        for group_name, per_layer in group_summaries.items():
+            lines.append("")
+            lines.append(f"===== {group_name.upper()} group summary sorted by mean r2 =====")
+            sorted_items = sorted(
+                per_layer.items(),
+                key=lambda item: item[1]["mean_r2"],
+                reverse=True,
+            )
+            for layer_name, metric_dict in sorted_items:
+                lines.append(format_group_metric_line(layer_name, metric_dict))
+            lines.append("==========================================================")
 
     return "\n".join(lines) + "\n"
 
@@ -289,10 +366,15 @@ def main():
 
             print(format_metric_line(layer_name, layer_result))
 
-    torch.save(results, RESULT_PATH)
+    group_summaries = build_group_summaries(results, TARGET_GROUPS)
+    torch.save({
+        "per_target": results,
+        "target_groups": TARGET_GROUPS,
+        "group_summaries": group_summaries,
+    }, RESULT_PATH)
     print(f"\nSaved physics probe results to: {RESULT_PATH}")
 
-    report_text = build_report_text(results, targets, groups)
+    report_text = build_report_text(results, targets, groups, target_groups=TARGET_GROUPS)
     with open(REPORT_PATH, "w", encoding="utf-8") as f:
         f.write(report_text)
     print(f"Saved physics probe report to: {REPORT_PATH}")
@@ -307,6 +389,17 @@ def main():
         for layer_name, metric_dict in sorted_items:
             print(format_metric_line(layer_name, metric_dict))
         print("==========================================")
+
+    for group_name, per_layer in group_summaries.items():
+        print(f"\n===== {group_name.upper()} group summary sorted by mean r2 =====")
+        sorted_items = sorted(
+            per_layer.items(),
+            key=lambda item: item[1]["mean_r2"],
+            reverse=True,
+        )
+        for layer_name, metric_dict in sorted_items:
+            print(format_group_metric_line(layer_name, metric_dict))
+        print("==========================================================")
 
 
 if __name__ == "__main__":

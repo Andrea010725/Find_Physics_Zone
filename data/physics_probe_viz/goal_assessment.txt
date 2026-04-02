@@ -1,0 +1,28 @@
+Verdict: partially supported
+
+Goal A: Are AGS best layers concentrated in middle/late layers?
+- AGS targets with best layer in next_state_hidden/ar_*: 2/7 (28.57%)
+- Top-3 AGS group mean R² layers in late-stage set: 3/3
+
+Goal B: Does AGS behave like an intermediate decision state?
+- Best AGS group layer: ar_3
+- Best AGS group mean R²: 0.150384
+- Best AGS group std(R² across AGS targets): 0.751921
+- Best AGS group mean normalized MAE: 0.619341
+- Strong support targets are those whose best layer falls in next_state_hidden/ar_*.
+  - future_acc: best_layer=raw_pose_yaw_past, r2=-0.103579, pearson=-0.073695
+  - future_delta_yaw: best_layer=ar_5, r2=0.594422, pearson=0.793212
+  - future_forward_progress: best_layer=time_space_0, r2=0.987129, pearson=0.993592
+  - future_lateral_offset: best_layer=raw_pose_yaw_past, r2=-0.100317, pearson=-0.062700
+  - future_speed: best_layer=time_space_0, r2=0.987134, pearson=0.993597
+  - future_speed_delta: best_layer=raw_pose_yaw_past, r2=-0.103579, pearson=-0.073695
+  - future_yaw_rate: best_layer=ar_5, r2=0.594422, pearson=0.793212
+
+Goal C: Candidate layers for policy-facing head
+- Top 1: ar_3 | mean_r2=0.150384 | std_r2=0.751921 | mean_nmae=0.619341
+- Top 2: ar_5 | mean_r2=0.107289 | std_r2=0.798913 | mean_nmae=0.626714
+- Top 3: ar_2 | mean_r2=0.072104 | std_r2=0.823972 | mean_nmae=0.635254
+
+Interpretation:
+- AGS group ranking favors some ar_* / next-state layers, but not all AGS targets consistently peak there.
+- This supports a partial intermediate-state story rather than a clean universal concentration claim.

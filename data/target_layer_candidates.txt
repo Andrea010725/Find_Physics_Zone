@@ -1,0 +1,55 @@
+source_txt: /home/yanda/Find_Physics_Zone/data/physics_probe_results.txt
+criteria: top_k=5, r2_margin=0.02
+
+=== future_acc ===
+best_overall: raw_pose_yaw_past | r2=-0.103579 | pearson=-0.073695
+best_readout: ar_3 | r2=-0.265622 | pearson=0.404431
+recommended_layers: ar_3
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+=== future_delta_yaw ===
+best_overall: ar_5 | r2=0.594422 | pearson=0.793212
+best_readout: ar_5 | r2=0.594422 | pearson=0.793212
+recommended_layers: ar_5, ar_1
+
+=== future_forward_progress ===
+best_overall: time_space_0 | r2=0.987129 | pearson=0.993592
+best_readout: time_space_0 | r2=0.987129 | pearson=0.993592
+recommended_layers: time_space_0, time_space_1, time_space_2, time_space_3
+
+=== future_lateral_offset ===
+best_overall: raw_pose_yaw_past | r2=-0.100317 | pearson=-0.062700
+best_readout: ar_5 | r2=-1.101440 | pearson=0.192956
+recommended_layers: ar_5
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+=== future_speed ===
+best_overall: time_space_0 | r2=0.987134 | pearson=0.993597
+best_readout: time_space_0 | r2=0.987134 | pearson=0.993597
+recommended_layers: time_space_0, time_space_1, time_space_2, time_space_3
+
+=== future_speed_delta ===
+best_overall: raw_pose_yaw_past | r2=-0.103579 | pearson=-0.073695
+best_readout: ar_3 | r2=-0.265622 | pearson=0.404431
+recommended_layers: ar_3
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+=== future_yaw_rate ===
+best_overall: ar_5 | r2=0.594422 | pearson=0.793212
+best_readout: ar_5 | r2=0.594422 | pearson=0.793212
+recommended_layers: ar_5, ar_1
+
+=== past_avg_speed ===
+best_overall: time_space_0 | r2=0.986938 | pearson=0.993518
+best_readout: time_space_0 | r2=0.986938 | pearson=0.993518
+recommended_layers: time_space_0, time_space_1, time_space_2
+
+=== past_avg_yaw_rate ===
+best_overall: time_space_0 | r2=0.521833 | pearson=0.728057
+best_readout: time_space_0 | r2=0.521833 | pearson=0.728057
+recommended_layers: time_space_0
+
+=== past_heading_change ===
+best_overall: time_space_0 | r2=0.521837 | pearson=0.728059
+best_readout: time_space_0 | r2=0.521837 | pearson=0.728059
+recommended_layers: time_space_0

@@ -6,6 +6,33 @@ import torch.nn.functional as F
 from utils.rope_2d import *
 from utils.embeddings import get_fourier_embeds_from_coordinates
 
+
+def _attention_with_optional_weights(q, k, v, attn_mask, dropout_p, training, return_attention):
+    if not return_attention:
+        y = F.scaled_dot_product_attention(
+            q,
+            k,
+            v,
+            attn_mask=attn_mask.to(q.dtype) if attn_mask is not None else None,
+            dropout_p=dropout_p,
+        )
+        return y, None
+
+    scale = q.shape[-1] ** -0.5
+    attn_scores = torch.matmul(q, k.transpose(-2, -1)) * scale
+    if attn_mask is not None:
+        mask = attn_mask.to(attn_scores.device)
+        if mask.dtype == torch.bool:
+            attn_scores = attn_scores.masked_fill(~mask, float("-inf"))
+        else:
+            attn_scores = attn_scores + mask.to(attn_scores.dtype)
+
+    attn_weights = torch.softmax(attn_scores, dim=-1)
+    if training and dropout_p > 0:
+        attn_weights = F.dropout(attn_weights, p=dropout_p)
+    y = torch.matmul(attn_weights, v)
+    return y, attn_weights
+
 class GPTConfig:
     embd_pdrop = 0.1
     resid_pdrop = 0.1
@@ -44,7 +71,7 @@ class CausalSpaceSelfAttention(nn.Module):
         self.num_tokens = self.total_tokens_num 
         self.freqs_cis_singlescale = compute_axial_cis(dim = config.n_embd  // self.n_head, end_x = self.patch_size[0], end_y = self.patch_size[1], theta = 1000.0)
         
-    def forward(self, x, attn_mask):
+    def forward(self, x, attn_mask, return_attention=False):
         B, T, C = x.size()
         k = self.key(x)
         q = self.query(x)
@@ -61,8 +88,19 @@ class CausalSpaceSelfAttention(nn.Module):
             k = torch.cat([k[:, :, 0:self.pose_tokens_num+self.yaw_token_size, :], k_out], dim=2)
         if attn_mask.ndim == 3:
             attn_mask = attn_mask[:, None, :, :]
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask = attn_mask.to(q.dtype), dropout_p=self.attn_dropout_rate).transpose(1, 2).contiguous().view(B, T, C) 
+        y, attn_weights = _attention_with_optional_weights(
+            q=q,
+            k=k,
+            v=v,
+            attn_mask=attn_mask,
+            dropout_p=self.attn_dropout_rate,
+            training=self.training,
+            return_attention=return_attention,
+        )
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.resid_drop(self.proj(y))
+        if return_attention:
+            return y, attn_weights
         return y
 
 class CausalSpaceBlock(nn.Module):
@@ -78,10 +116,16 @@ class CausalSpaceBlock(nn.Module):
             nn.Dropout(config.resid_pdrop),
         )
 
-    def forward(self, x, attn_mask):
-        attn = self.attn(self.ln1(x), attn_mask)
+    def forward(self, x, attn_mask, return_attention=False):
+        if return_attention:
+            attn, attn_weights = self.attn(self.ln1(x), attn_mask, return_attention=True)
+        else:
+            attn = self.attn(self.ln1(x), attn_mask)
+            attn_weights = None
         x = x + attn
         x = x + self.mlp(self.ln2(x))
+        if return_attention:
+            return x, attn_weights
         return x
 
 class SpaceSelfAttention(nn.Module):
@@ -110,7 +154,7 @@ class SpaceSelfAttention(nn.Module):
         self.num_tokens = self.total_tokens_num 
         self.freqs_cis_singlescale = compute_axial_cis(dim = config.n_embd  // self.n_head, end_x = self.patch_size[0], end_y = self.patch_size[1], theta = 1000.0)
         
-    def forward(self, x,attn_mask):
+    def forward(self, x,attn_mask, return_attention=False):
         B, T, C = x.size()
         k = self.key(x)
         q = self.query(x)
@@ -127,8 +171,19 @@ class SpaceSelfAttention(nn.Module):
             k = torch.cat([k[:, :, 0:self.pose_tokens_num+self.yaw_token_size, :], k_out], dim=2)
         if attn_mask.ndim == 3:
             attn_mask = attn_mask[:, None, :, :]
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask = attn_mask.to(q.dtype), dropout_p=self.attn_dropout_rate).transpose(1, 2).contiguous().view(B, T, C) 
+        y, attn_weights = _attention_with_optional_weights(
+            q=q,
+            k=k,
+            v=v,
+            attn_mask=attn_mask,
+            dropout_p=self.attn_dropout_rate,
+            training=self.training,
+            return_attention=return_attention,
+        )
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.resid_drop(self.proj(y))
+        if return_attention:
+            return y, attn_weights
         return y
     
 class SpaceBlock(nn.Module):
@@ -144,10 +199,16 @@ class SpaceBlock(nn.Module):
             nn.Dropout(config.resid_pdrop),
         )
 
-    def forward(self, x, attn_mask):
-        attn = self.attn(self.ln1(x),attn_mask)
+    def forward(self, x, attn_mask, return_attention=False):
+        if return_attention:
+            attn, attn_weights = self.attn(self.ln1(x), attn_mask, return_attention=True)
+        else:
+            attn = self.attn(self.ln1(x),attn_mask)
+            attn_weights = None
         x = x + attn
         x = x + self.mlp(self.ln2(x))
+        if return_attention:
+            return x, attn_weights
         return x
 
 class CausalTimeSelfAttention(nn.Module):
@@ -169,7 +230,7 @@ class CausalTimeSelfAttention(nn.Module):
         else:
             self.q_norm = self.k_norm = nn.Identity()
 
-    def forward(self, x, attn_mask):
+    def forward(self, x, attn_mask, return_attention=False):
         B, T, C = x.size()
         k = self.key(x)
         q = self.query(x)
@@ -178,8 +239,19 @@ class CausalTimeSelfAttention(nn.Module):
         k = self.k_norm(k)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask = attn_mask.to(q.dtype), dropout_p=self.attn_dropout_rate).transpose(1, 2).contiguous().view(B, T, C) 
+        y, attn_weights = _attention_with_optional_weights(
+            q=q,
+            k=k,
+            v=v,
+            attn_mask=attn_mask,
+            dropout_p=self.attn_dropout_rate,
+            training=self.training,
+            return_attention=return_attention,
+        )
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.resid_drop(self.proj(y))
+        if return_attention:
+            return y, attn_weights
         return y
 
 class CausalTimeBlock(nn.Module):
@@ -195,10 +267,16 @@ class CausalTimeBlock(nn.Module):
             nn.Dropout(config.resid_pdrop),
         )
 
-    def forward(self, x, attn_mask):
-        attn = self.attn(self.ln1(x), attn_mask)
+    def forward(self, x, attn_mask, return_attention=False):
+        if return_attention:
+            attn, attn_weights = self.attn(self.ln1(x), attn_mask, return_attention=True)
+        else:
+            attn = self.attn(self.ln1(x), attn_mask)
+            attn_weights = None
         x = x + attn
         x = x + self.mlp(self.ln2(x))
+        if return_attention:
+            return x, attn_weights
         return x
 
 class CausalTimeSpaceBlock(nn.Module):
@@ -207,17 +285,27 @@ class CausalTimeSpaceBlock(nn.Module):
         self.causal_time_block = CausalTimeBlock(config)
         self.space_block = SpaceBlock(config)
         
-    def forward(self, x, time_attn_mask,space_attn_mask):
+    def forward(self, x, time_attn_mask,space_attn_mask, return_attention=False):
         b, f, l, c = x.shape
         x = rearrange(x, 'b f l c -> (b l) f c')
-        x = self.causal_time_block(x, time_attn_mask)
+        if return_attention:
+            x, attn_time = self.causal_time_block(x, time_attn_mask, return_attention=True)
+        else:
+            x = self.causal_time_block(x, time_attn_mask)
+            attn_time = None
         x = rearrange(x, '(b l) f c -> b f l c', b=b, l=l, f=f)
         space_attn_mask = space_attn_mask.unsqueeze(1)
         space_attn_mask = space_attn_mask.repeat(1, x.shape[1], 1, 1)
         x = rearrange(x, 'b f l c -> (b f) l c', b=b, f=f)
         space_attn_mask = rearrange(space_attn_mask, 'b f l c -> (b f) l c')
-        x = self.space_block(x,space_attn_mask)
+        if return_attention:
+            x, attn_space = self.space_block(x, space_attn_mask, return_attention=True)
+        else:
+            x = self.space_block(x,space_attn_mask)
+            attn_space = None
         x = rearrange(x, '(b f) l c -> b f l c', b=b, f=f)
+        if return_attention:
+            return x, {"time": attn_time, "space": attn_space}
         return x
     
 class GPT(nn.Module):
@@ -386,10 +474,22 @@ class GPT(nn.Module):
         yaw_indices_total,
         drop_flag=False,
         return_hidden_states=False,
+        return_attentions=False,
+        attention_layers=None,
         return_logits=True,
         ):
         mask_spatial_curr, mask_ar_curr = self.organize_attn_mask(drop_flag)
         hidden_states = []
+        attentions = {}
+        if attention_layers is not None:
+            attention_layers = set(attention_layers)
+
+        def should_capture(name):
+            if not return_attentions:
+                return False
+            if attention_layers is None:
+                return True
+            return name in attention_layers
 
         yaw_emb_total, pose_x_emb_total, pose_y_emb_total = self.get_yaw_pose_emb(
             pose_indices_total, yaw_indices_total
@@ -420,9 +520,24 @@ class GPT(nn.Module):
         time_space_token_embeddings = yaw_pose_scale_token_embeddings + time_emb_F
 
         for i in range(self.causal_time_space_num):
-            time_space_token_embeddings = self.causal_time_space_blocks[i](
-                time_space_token_embeddings, self.mask_time, mask_spatial_curr
-            )
+            time_name = f"time_space_{i}.time"
+            space_name = f"time_space_{i}.space"
+            capture_block = should_capture(time_name) or should_capture(space_name)
+            if capture_block:
+                time_space_token_embeddings, block_attn = self.causal_time_space_blocks[i](
+                    time_space_token_embeddings,
+                    self.mask_time,
+                    mask_spatial_curr,
+                    return_attention=True,
+                )
+                if should_capture(time_name):
+                    attentions[time_name] = block_attn["time"].contiguous()
+                if should_capture(space_name):
+                    attentions[space_name] = block_attn["space"].contiguous()
+            else:
+                time_space_token_embeddings = self.causal_time_space_blocks[i](
+                    time_space_token_embeddings, self.mask_time, mask_spatial_curr
+                )
             if return_hidden_states:
                     hidden_states.append({
                     "name": f"time_space_{i}",
@@ -465,13 +580,22 @@ class GPT(nn.Module):
             )
 
         for i in range(self.auto_regressive_num):
-            auto_regressive_token_embeddings = self.causal_space_blocks[i](
-                auto_regressive_token_embeddings, mask_ar_curr
-            )
+            layer_name = f"ar_{i}"
+            if should_capture(layer_name):
+                auto_regressive_token_embeddings, attn_weights = self.causal_space_blocks[i](
+                    auto_regressive_token_embeddings,
+                    mask_ar_curr,
+                    return_attention=True,
+                )
+                attentions[layer_name] = attn_weights.contiguous()
+            else:
+                auto_regressive_token_embeddings = self.causal_space_blocks[i](
+                    auto_regressive_token_embeddings, mask_ar_curr
+                )
             if return_hidden_states:
                 hidden_states.append(
                     {
-                        "name": f"ar_{i}",
+                        "name": layer_name,
                         "stage": "ar",
                         "layer_idx": i,
                         "tensor": auto_regressive_token_embeddings.contiguous(),
@@ -483,6 +607,8 @@ class GPT(nn.Module):
             out = {}
             if return_hidden_states:
                 out["hidden_states"] = hidden_states
+            if return_attentions:
+                out["attentions"] = attentions
             return out
 
         out_img_embed = auto_regressive_token_embeddings[:, -self.img_token_size:, :]
@@ -506,6 +632,8 @@ class GPT(nn.Module):
         
         if return_hidden_states:
             out['hidden_states'] = hidden_states
+        if return_attentions:
+            out["attentions"] = attentions
 
         return out
     

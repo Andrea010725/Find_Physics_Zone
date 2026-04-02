@@ -1,0 +1,690 @@
+{
+  "source_txt": "/home/yanda/Find_Physics_Zone/data/physics_probe_results.txt",
+  "criteria": {
+    "top_k": 5,
+    "r2_margin": 0.02,
+    "readout_layer_filter": "time_space_* | next_state_hidden | ar_*"
+  },
+  "targets": {
+    "future_acc": {
+      "best_overall": {
+        "layer": "raw_pose_yaw_past",
+        "r2": -0.103579,
+        "pearson": -0.073695
+      },
+      "best_readout": {
+        "layer": "ar_3",
+        "r2": -0.265622,
+        "pearson": 0.404431
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        },
+        {
+          "layer": "ar_4",
+          "r2": -0.460693,
+          "pearson": 0.328546
+        },
+        {
+          "layer": "ar_2",
+          "r2": -0.519231,
+          "pearson": 0.290056
+        },
+        {
+          "layer": "ar_0",
+          "r2": -0.552218,
+          "pearson": 0.379208
+        },
+        {
+          "layer": "time_space_9",
+          "r2": -0.559903,
+          "pearson": 0.414161
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        }
+      ],
+      "recommended_layer_names": [
+        "ar_3"
+      ],
+      "note": "Best readout-layer R2 <= 0; treat this target as hard/noisy for readout."
+    },
+    "future_delta_yaw": {
+      "best_overall": {
+        "layer": "ar_5",
+        "r2": 0.594422,
+        "pearson": 0.793212
+      },
+      "best_readout": {
+        "layer": "ar_5",
+        "r2": 0.594422,
+        "pearson": 0.793212
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        },
+        {
+          "layer": "ar_4",
+          "r2": 0.533863,
+          "pearson": 0.758081
+        },
+        {
+          "layer": "ar_0",
+          "r2": 0.517748,
+          "pearson": 0.756489
+        },
+        {
+          "layer": "ar_2",
+          "r2": 0.498629,
+          "pearson": 0.742764
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        }
+      ],
+      "recommended_layer_names": [
+        "ar_5",
+        "ar_1"
+      ],
+      "note": ""
+    },
+    "future_forward_progress": {
+      "best_overall": {
+        "layer": "time_space_0",
+        "r2": 0.987129,
+        "pearson": 0.993592
+      },
+      "best_readout": {
+        "layer": "time_space_0",
+        "r2": 0.987129,
+        "pearson": 0.993592
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987129,
+          "pearson": 0.993592
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981383,
+          "pearson": 0.990933
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979447,
+          "pearson": 0.990486
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.96893,
+          "pearson": 0.986721
+        },
+        {
+          "layer": "time_space_10",
+          "r2": 0.965396,
+          "pearson": 0.984112
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987129,
+          "pearson": 0.993592
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981383,
+          "pearson": 0.990933
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979447,
+          "pearson": 0.990486
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.96893,
+          "pearson": 0.986721
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987129,
+          "pearson": 0.993592
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981383,
+          "pearson": 0.990933
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979447,
+          "pearson": 0.990486
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.96893,
+          "pearson": 0.986721
+        }
+      ],
+      "recommended_layer_names": [
+        "time_space_0",
+        "time_space_1",
+        "time_space_2",
+        "time_space_3"
+      ],
+      "note": ""
+    },
+    "future_lateral_offset": {
+      "best_overall": {
+        "layer": "raw_pose_yaw_past",
+        "r2": -0.100317,
+        "pearson": -0.0627
+      },
+      "best_readout": {
+        "layer": "ar_5",
+        "r2": -1.10144,
+        "pearson": 0.192956
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": -1.10144,
+          "pearson": 0.192956
+        },
+        {
+          "layer": "ar_3",
+          "r2": -1.295642,
+          "pearson": 0.196398
+        },
+        {
+          "layer": "ar_2",
+          "r2": -1.378595,
+          "pearson": 0.171198
+        },
+        {
+          "layer": "ar_1",
+          "r2": -1.523457,
+          "pearson": 0.153969
+        },
+        {
+          "layer": "ar_0",
+          "r2": -1.56133,
+          "pearson": 0.141841
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": -1.10144,
+          "pearson": 0.192956
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "ar_5",
+          "r2": -1.10144,
+          "pearson": 0.192956
+        }
+      ],
+      "recommended_layer_names": [
+        "ar_5"
+      ],
+      "note": "Best readout-layer R2 <= 0; treat this target as hard/noisy for readout."
+    },
+    "future_speed": {
+      "best_overall": {
+        "layer": "time_space_0",
+        "r2": 0.987134,
+        "pearson": 0.993597
+      },
+      "best_readout": {
+        "layer": "time_space_0",
+        "r2": 0.987134,
+        "pearson": 0.993597
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987134,
+          "pearson": 0.993597
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981369,
+          "pearson": 0.990913
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979521,
+          "pearson": 0.990537
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.968694,
+          "pearson": 0.986646
+        },
+        {
+          "layer": "time_space_10",
+          "r2": 0.965457,
+          "pearson": 0.984146
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987134,
+          "pearson": 0.993597
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981369,
+          "pearson": 0.990913
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979521,
+          "pearson": 0.990537
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.968694,
+          "pearson": 0.986646
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.987134,
+          "pearson": 0.993597
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.981369,
+          "pearson": 0.990913
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.979521,
+          "pearson": 0.990537
+        },
+        {
+          "layer": "time_space_3",
+          "r2": 0.968694,
+          "pearson": 0.986646
+        }
+      ],
+      "recommended_layer_names": [
+        "time_space_0",
+        "time_space_1",
+        "time_space_2",
+        "time_space_3"
+      ],
+      "note": ""
+    },
+    "future_speed_delta": {
+      "best_overall": {
+        "layer": "raw_pose_yaw_past",
+        "r2": -0.103579,
+        "pearson": -0.073695
+      },
+      "best_readout": {
+        "layer": "ar_3",
+        "r2": -0.265622,
+        "pearson": 0.404431
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        },
+        {
+          "layer": "ar_4",
+          "r2": -0.460699,
+          "pearson": 0.328546
+        },
+        {
+          "layer": "ar_2",
+          "r2": -0.519234,
+          "pearson": 0.290055
+        },
+        {
+          "layer": "ar_0",
+          "r2": -0.552216,
+          "pearson": 0.379208
+        },
+        {
+          "layer": "time_space_9",
+          "r2": -0.559907,
+          "pearson": 0.414161
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "ar_3",
+          "r2": -0.265622,
+          "pearson": 0.404431
+        }
+      ],
+      "recommended_layer_names": [
+        "ar_3"
+      ],
+      "note": "Best readout-layer R2 <= 0; treat this target as hard/noisy for readout."
+    },
+    "future_yaw_rate": {
+      "best_overall": {
+        "layer": "ar_5",
+        "r2": 0.594422,
+        "pearson": 0.793212
+      },
+      "best_readout": {
+        "layer": "ar_5",
+        "r2": 0.594422,
+        "pearson": 0.793212
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        },
+        {
+          "layer": "ar_4",
+          "r2": 0.533862,
+          "pearson": 0.758081
+        },
+        {
+          "layer": "ar_0",
+          "r2": 0.517749,
+          "pearson": 0.756489
+        },
+        {
+          "layer": "ar_2",
+          "r2": 0.49863,
+          "pearson": 0.742764
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "ar_5",
+          "r2": 0.594422,
+          "pearson": 0.793212
+        },
+        {
+          "layer": "ar_1",
+          "r2": 0.583508,
+          "pearson": 0.790486
+        }
+      ],
+      "recommended_layer_names": [
+        "ar_5",
+        "ar_1"
+      ],
+      "note": ""
+    },
+    "past_avg_speed": {
+      "best_overall": {
+        "layer": "time_space_0",
+        "r2": 0.986938,
+        "pearson": 0.993518
+      },
+      "best_readout": {
+        "layer": "time_space_0",
+        "r2": 0.986938,
+        "pearson": 0.993518
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.986938,
+          "pearson": 0.993518
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.972783,
+          "pearson": 0.986888
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.967418,
+          "pearson": 0.985571
+        },
+        {
+          "layer": "time_space_9",
+          "r2": 0.952321,
+          "pearson": 0.978683
+        },
+        {
+          "layer": "time_space_10",
+          "r2": 0.949771,
+          "pearson": 0.976123
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.986938,
+          "pearson": 0.993518
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.972783,
+          "pearson": 0.986888
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.967418,
+          "pearson": 0.985571
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.986938,
+          "pearson": 0.993518
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.972783,
+          "pearson": 0.986888
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.967418,
+          "pearson": 0.985571
+        }
+      ],
+      "recommended_layer_names": [
+        "time_space_0",
+        "time_space_1",
+        "time_space_2"
+      ],
+      "note": ""
+    },
+    "past_avg_yaw_rate": {
+      "best_overall": {
+        "layer": "time_space_0",
+        "r2": 0.521833,
+        "pearson": 0.728057
+      },
+      "best_readout": {
+        "layer": "time_space_0",
+        "r2": 0.521833,
+        "pearson": 0.728057
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521833,
+          "pearson": 0.728057
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.476785,
+          "pearson": 0.709454
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.233066,
+          "pearson": 0.585363
+        },
+        {
+          "layer": "time_space_10",
+          "r2": 0.146267,
+          "pearson": 0.506557
+        },
+        {
+          "layer": "time_space_9",
+          "r2": 0.118382,
+          "pearson": 0.54105
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521833,
+          "pearson": 0.728057
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521833,
+          "pearson": 0.728057
+        }
+      ],
+      "recommended_layer_names": [
+        "time_space_0"
+      ],
+      "note": ""
+    },
+    "past_heading_change": {
+      "best_overall": {
+        "layer": "time_space_0",
+        "r2": 0.521837,
+        "pearson": 0.728059
+      },
+      "best_readout": {
+        "layer": "time_space_0",
+        "r2": 0.521837,
+        "pearson": 0.728059
+      },
+      "top_k_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521837,
+          "pearson": 0.728059
+        },
+        {
+          "layer": "time_space_1",
+          "r2": 0.476783,
+          "pearson": 0.709453
+        },
+        {
+          "layer": "time_space_2",
+          "r2": 0.233065,
+          "pearson": 0.585362
+        },
+        {
+          "layer": "time_space_10",
+          "r2": 0.146265,
+          "pearson": 0.506557
+        },
+        {
+          "layer": "time_space_9",
+          "r2": 0.118379,
+          "pearson": 0.541048
+        }
+      ],
+      "margin_readout_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521837,
+          "pearson": 0.728059
+        }
+      ],
+      "recommended_layers": [
+        {
+          "layer": "time_space_0",
+          "r2": 0.521837,
+          "pearson": 0.728059
+        }
+      ],
+      "recommended_layer_names": [
+        "time_space_0"
+      ],
+      "note": ""
+    }
+  }
+}

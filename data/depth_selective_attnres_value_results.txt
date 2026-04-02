@@ -1,0 +1,105 @@
+feature_path: /home/yanda/Find_Physics_Zone/data/physics_features.pt
+candidate_path: /home/yanda/Find_Physics_Zone/data/target_layer_candidates.json
+num_samples: 1000
+num_groups: 13
+
+===== future_speed =====
+candidates: time_space_0, time_space_1, time_space_2, time_space_3
+single_layer_ridge: r2=0.987134 | pearson=0.993597 | nmae=0.083672
+mean_layer_ridge:   r2=0.980703 | pearson=0.991166 | nmae=0.110734
+depth_selective:    r2=0.966325 | pearson=0.983109 | nmae=0.140302
+attn_residual:      r2=0.963243 | pearson=0.981871 | nmae=0.146990 | gate_mean=0.160430
+value_function:     r2=0.953731 | pearson=0.977111 | nmae=0.146596 | gate_mean=0.169208
+delta_depth_vs_single: delta_r2=-0.020810 | delta_nmae=0.056631
+delta_attn_vs_single:  delta_r2=-0.023892 | delta_nmae=0.063318
+delta_value_vs_single: delta_r2=-0.033403 | delta_nmae=0.062924
+depth_weights_mean: time_space_3:0.2868, time_space_2:0.2685, time_space_1:0.2231, time_space_0:0.2216
+attn_weights_mean:  time_space_3:0.3464, time_space_2:0.2445, time_space_1:0.2138, time_space_0:0.1954
+value_weights_mean: time_space_2:0.3161, time_space_3:0.2615, time_space_0:0.2287, time_space_1:0.1937
+
+===== future_forward_progress =====
+candidates: time_space_0, time_space_1, time_space_2, time_space_3
+single_layer_ridge: r2=0.987129 | pearson=0.993592 | nmae=0.083698
+mean_layer_ridge:   r2=0.980610 | pearson=0.991122 | nmae=0.111153
+depth_selective:    r2=0.962567 | pearson=0.982350 | nmae=0.149545
+attn_residual:      r2=0.965578 | pearson=0.982910 | nmae=0.142960 | gate_mean=0.161204
+value_function:     r2=0.939777 | pearson=0.971019 | nmae=0.161132 | gate_mean=0.168973
+delta_depth_vs_single: delta_r2=-0.024561 | delta_nmae=0.065848
+delta_attn_vs_single:  delta_r2=-0.021551 | delta_nmae=0.059262
+delta_value_vs_single: delta_r2=-0.047352 | delta_nmae=0.077435
+depth_weights_mean: time_space_3:0.2853, time_space_2:0.2677, time_space_1:0.2310, time_space_0:0.2160
+attn_weights_mean:  time_space_3:0.7175, time_space_0:0.2019, time_space_2:0.0693, time_space_1:0.0113
+value_weights_mean: time_space_0:0.4316, time_space_3:0.3067, time_space_2:0.1329, time_space_1:0.1288
+
+===== future_yaw_rate =====
+candidates: ar_5, ar_1
+single_layer_ridge: r2=0.594422 | pearson=0.793212 | nmae=0.483348
+mean_layer_ridge:   r2=0.593964 | pearson=0.793816 | nmae=0.491268
+depth_selective:    r2=0.611513 | pearson=0.790856 | nmae=0.479545
+attn_residual:      r2=0.561680 | pearson=0.755919 | nmae=0.487287 | gate_mean=0.160013
+value_function:     r2=0.557040 | pearson=0.752019 | nmae=0.478794 | gate_mean=0.166629
+delta_depth_vs_single: delta_r2=0.017090 | delta_nmae=-0.003803
+delta_attn_vs_single:  delta_r2=-0.032742 | delta_nmae=0.003939
+delta_value_vs_single: delta_r2=-0.037382 | delta_nmae=-0.004554
+depth_weights_mean: ar_1:0.5276, ar_5:0.4724
+attn_weights_mean:  ar_1:0.7959, ar_5:0.2041
+value_weights_mean: ar_5:0.5803, ar_1:0.4197
+
+===== future_delta_yaw =====
+candidates: ar_5, ar_1
+single_layer_ridge: r2=0.594422 | pearson=0.793212 | nmae=0.483348
+mean_layer_ridge:   r2=0.593963 | pearson=0.793816 | nmae=0.491269
+depth_selective:    r2=0.561906 | pearson=0.765142 | nmae=0.509116
+attn_residual:      r2=0.547325 | pearson=0.749298 | nmae=0.489932 | gate_mean=0.157913
+value_function:     r2=0.606211 | pearson=0.781348 | nmae=0.452502 | gate_mean=0.164385
+delta_depth_vs_single: delta_r2=-0.032515 | delta_nmae=0.025768
+delta_attn_vs_single:  delta_r2=-0.047097 | delta_nmae=0.006584
+delta_value_vs_single: delta_r2=0.011789 | delta_nmae=-0.030846
+depth_weights_mean: ar_1:0.5406, ar_5:0.4594
+attn_weights_mean:  ar_1:0.5083, ar_5:0.4917
+value_weights_mean: ar_5:0.5112, ar_1:0.4888
+
+===== future_lateral_offset =====
+candidates: ar_5
+single_layer_ridge: r2=-1.101440 | pearson=0.192956 | nmae=1.134859
+mean_layer_ridge:   r2=-1.101440 | pearson=0.192956 | nmae=1.134859
+depth_selective:    r2=-0.918861 | pearson=0.079501 | nmae=1.075052
+attn_residual:      r2=-1.095555 | pearson=0.053671 | nmae=1.116995 | gate_mean=0.160375
+value_function:     r2=-0.775526 | pearson=0.077558 | nmae=1.010065 | gate_mean=0.163579
+delta_depth_vs_single: delta_r2=0.182579 | delta_nmae=-0.059807
+delta_attn_vs_single:  delta_r2=0.005885 | delta_nmae=-0.017864
+delta_value_vs_single: delta_r2=0.325914 | delta_nmae=-0.124794
+depth_weights_mean: ar_5:1.0000
+attn_weights_mean:  ar_5:1.0000
+value_weights_mean: ar_5:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+===== future_speed_delta =====
+candidates: ar_3
+single_layer_ridge: r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+mean_layer_ridge:   r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+depth_selective:    r2=-0.213393 | pearson=0.320054 | nmae=0.838884
+attn_residual:      r2=-0.538023 | pearson=0.219049 | nmae=1.006438 | gate_mean=0.157000
+value_function:     r2=-0.266941 | pearson=0.255258 | nmae=0.859580 | gate_mean=0.163278
+delta_depth_vs_single: delta_r2=0.052229 | delta_nmae=-0.032881
+delta_attn_vs_single:  delta_r2=-0.272401 | delta_nmae=0.134673
+delta_value_vs_single: delta_r2=-0.001319 | delta_nmae=-0.012185
+depth_weights_mean: ar_3:1.0000
+attn_weights_mean:  ar_3:1.0000
+value_weights_mean: ar_3:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.
+
+===== future_acc =====
+candidates: ar_3
+single_layer_ridge: r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+mean_layer_ridge:   r2=-0.265622 | pearson=0.404431 | nmae=0.871765
+depth_selective:    r2=-0.234445 | pearson=0.298184 | nmae=0.867307
+attn_residual:      r2=-0.284642 | pearson=0.310361 | nmae=0.886388 | gate_mean=0.158738
+value_function:     r2=-0.351362 | pearson=0.236496 | nmae=0.881208 | gate_mean=0.162107
+delta_depth_vs_single: delta_r2=0.031177 | delta_nmae=-0.004458
+delta_attn_vs_single:  delta_r2=-0.019020 | delta_nmae=0.014623
+delta_value_vs_single: delta_r2=-0.085741 | delta_nmae=0.009443
+depth_weights_mean: ar_3:1.0000
+attn_weights_mean:  ar_3:1.0000
+value_weights_mean: ar_3:1.0000
+note: Best readout-layer R2 <= 0; treat this target as hard/noisy for readout.

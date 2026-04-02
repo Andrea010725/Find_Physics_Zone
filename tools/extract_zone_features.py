@@ -50,6 +50,10 @@ PHYSICS_LABEL_KEYS = [
     "future_speed",
     "future_yaw_rate",
     "future_delta_yaw",
+    "future_forward_progress",
+    "future_lateral_offset",
+    "future_speed_delta",
+    "future_acc",
 ]
 
 META_KEYS = [

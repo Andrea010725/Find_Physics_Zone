@@ -217,6 +217,8 @@ class TrainTransformers(nn.Module):
         yaw_indices_total,
         drop_flag,
         return_logits=False,
+        return_attentions=False,
+        attention_layers=None,
     ):
         self.model.eval()
         out = self.model(
@@ -225,6 +227,8 @@ class TrainTransformers(nn.Module):
             yaw_indices_total,
             drop_flag=drop_flag,
             return_hidden_states=True,
+            return_attentions=return_attentions,
+            attention_layers=attention_layers,
             return_logits=return_logits,
         )
         return out

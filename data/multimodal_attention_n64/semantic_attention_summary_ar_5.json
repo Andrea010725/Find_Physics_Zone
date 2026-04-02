@@ -1,0 +1,77 @@
+{
+  "attention_layer": "ar_5",
+  "hidden_layer": "ar_5",
+  "num_samples": 64,
+  "token_stat": "norm",
+  "targets": {
+    "speed": "future_speed",
+    "offset": "future_lateral_offset",
+    "progress": "future_forward_progress"
+  },
+  "semantic_tokens": [
+    {
+      "semantic": "yaw",
+      "token_idx": 0,
+      "target_key": null,
+      "abs_corr": null,
+      "token_name": "yaw"
+    },
+    {
+      "semantic": "speed",
+      "token_idx": 295,
+      "target_key": "future_speed",
+      "abs_corr": 0.9931577674952717,
+      "token_name": "img[9,4]"
+    },
+    {
+      "semantic": "offset",
+      "token_idx": 54,
+      "target_key": "future_lateral_offset",
+      "abs_corr": 0.4381652532353305,
+      "token_name": "img[1,19]"
+    },
+    {
+      "semantic": "progress",
+      "token_idx": 359,
+      "target_key": "future_forward_progress",
+      "abs_corr": 0.9900260289949289,
+      "token_name": "img[11,4]"
+    }
+  ],
+  "semantic_attention_matrix": [
+    [
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.13693559169769287,
+      0.18468010425567627,
+      0.0004730700165964663,
+      0.0
+    ],
+    [
+      0.2141607701778412,
+      0.0,
+      0.22484859824180603,
+      0.0
+    ],
+    [
+      0.1251567006111145,
+      0.009024742059409618,
+      0.00046315640793181956,
+      0.14373520016670227
+    ]
+  ],
+  "semantic_labels": [
+    "yaw (yaw)",
+    "speed (img[9,4])",
+    "offset (img[1,19])",
+    "progress (img[11,4])"
+  ],
+  "output_files": {
+    "semantic_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_n64/semantic_attention_ar_5.png",
+    "full_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_n64/mean_attention_full_ar_5.png"
+  }
+}

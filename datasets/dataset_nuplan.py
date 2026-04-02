@@ -34,8 +34,10 @@ class NuPlanTest(Dataset):
         self.w = w
         self.downsample_size = downsample_size
 
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.seq_meta_path = seq_meta_path or self._resolve_seq_meta_path(json_root)
         self.pose_meta_path = pose_meta_path or self._resolve_pose_meta_path(json_root)
+        self.camera_root_override = os.path.join(repo_root, "nuplan-v1.1_mini_camera_0")
         self.sequences = self._load_sequences(self.seq_meta_path)
         self.sequences = [
             seq for seq in self.sequences
@@ -143,6 +145,13 @@ class NuPlanTest(Dataset):
 
     def _resolve_seq_root(self, seq_data):
         seq_root = seq_data["data_root"]
+        seq_db_name = os.path.basename(seq_root.rstrip("/"))
+
+        if os.path.isdir(self.camera_root_override):
+            override_root = os.path.join(self.camera_root_override, seq_db_name)
+            if os.path.isdir(override_root):
+                return override_root
+
         if os.path.isabs(seq_root):
             return seq_root
         return os.path.join(self.data_root, seq_root)

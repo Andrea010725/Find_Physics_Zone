@@ -1,138 +1,291 @@
-feature_path: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_features.pt
-result_path: /mnt/slurmfs-4090node1/homes/zchen897/Find_Physics_Zone/data/physics_probe_results.pt
-num_samples: 12763
-num_groups: 159
+feature_path: /home/yanda/Find_Physics_Zone/data/physics_features.pt
+result_path: /home/yanda/Find_Physics_Zone/data/physics_probe_results.pt
+num_samples: 1000
+num_groups: 13
 
 target stats:
-  past_avg_speed: mean=0.082462, std=0.098000, min=0.000131, max=1.268416
-  past_avg_yaw_rate: mean=-0.001926, std=0.164635, min=-1.933490, max=1.825202
-  past_heading_change: mean=-0.005393, std=0.460978, min=-5.413803, max=5.110596
-  future_speed: mean=0.077700, std=0.097861, min=0.000002, max=1.347859
-  future_yaw_rate: mean=-0.002715, std=0.338762, min=-4.005127, max=5.209656
-  future_delta_yaw: mean=-0.000543, std=0.067752, min=-0.801025, max=1.041931
+  past_avg_speed: mean=6.461079, std=4.590510, min=0.000131, max=13.669900
+  past_avg_yaw_rate: mean=0.117520, std=0.345270, min=-0.820861, max=1.339056
+  past_heading_change: mean=0.352560, std=1.035810, min=-2.462581, max=4.017169
+  future_speed: mean=6.486412, std=4.583001, min=0.000030, max=13.852595
+  future_yaw_rate: mean=0.109618, std=0.459557, min=-1.597028, max=1.904219
+  future_delta_yaw: mean=0.021924, std=0.091911, min=-0.319406, max=0.380844
+  future_forward_progress: mean=1.297040, std=0.916930, min=-0.015063, max=2.770509
+  future_lateral_offset: mean=0.000246, std=0.004928, min=-0.018418, max=0.018639
+  future_speed_delta: mean=0.004315, std=0.126103, min=-0.342945, max=0.436749
+  future_acc: mean=0.021574, std=0.630515, min=-1.714725, max=2.183747
 
 ===== summary sorted by r2: past_avg_speed =====
-time_space_0    | mse=0.004845 | r2=0.495493 | pearson=0.744618
-time_space_1    | mse=0.007342 | r2=0.235498 | pearson=0.636365
-time_space_2    | mse=0.009075 | r2=0.055120 | pearson=0.548900
-ar_5            | mse=0.009310 | r2=0.030606 | pearson=0.458775
-ar_3            | mse=0.009677 | r2=-0.007594 | pearson=0.442420
-ar_1            | mse=0.009802 | r2=-0.020660 | pearson=0.437412
-ar_4            | mse=0.009873 | r2=-0.027974 | pearson=0.423212
-time_space_11   | mse=0.010242 | r2=-0.066462 | pearson=0.431431
-ar_0            | mse=0.010263 | r2=-0.068568 | pearson=0.439981
-ar_2            | mse=0.010381 | r2=-0.080931 | pearson=0.414327
-time_space_10   | mse=0.010553 | r2=-0.098849 | pearson=0.442753
-time_space_8    | mse=0.011508 | r2=-0.198234 | pearson=0.416900
-time_space_9    | mse=0.011606 | r2=-0.208423 | pearson=0.407748
-time_space_3    | mse=0.012335 | r2=-0.284380 | pearson=0.440657
-time_space_7    | mse=0.012433 | r2=-0.294583 | pearson=0.400935
-time_space_4    | mse=0.014555 | r2=-0.515508 | pearson=0.392876
-time_space_6    | mse=0.014695 | r2=-0.530140 | pearson=0.367961
-time_space_5    | mse=0.018239 | r2=-0.899059 | pearson=0.313779
+time_space_0    | mse=0.275255 | mae=0.395069 | nmae=0.086062 | r2=0.986938 | pearson=0.993518
+time_space_1    | mse=0.573542 | mae=0.603796 | nmae=0.131531 | r2=0.972783 | pearson=0.986888
+time_space_2    | mse=0.686595 | mae=0.658602 | nmae=0.143470 | r2=0.967418 | pearson=0.985571
+time_space_9    | mse=1.004734 | mae=0.777722 | nmae=0.169419 | r2=0.952321 | pearson=0.978683
+time_space_10   | mse=1.058463 | mae=0.772598 | nmae=0.168303 | r2=0.949771 | pearson=0.976123
+time_space_3    | mse=1.196788 | mae=0.870044 | nmae=0.189531 | r2=0.943207 | pearson=0.974201
+time_space_7    | mse=1.243944 | mae=0.859725 | nmae=0.187283 | r2=0.940969 | pearson=0.975326
+time_space_8    | mse=1.245029 | mae=0.879292 | nmae=0.191546 | r2=0.940918 | pearson=0.974625
+ar_2            | mse=1.376955 | mae=0.910488 | nmae=0.198341 | r2=0.934657 | pearson=0.968201
+ar_5            | mse=1.526025 | mae=0.919638 | nmae=0.200335 | r2=0.927583 | pearson=0.964460
+time_space_11   | mse=1.567521 | mae=0.973298 | nmae=0.212024 | r2=0.925614 | pearson=0.962673
+next_state_hidden | mse=1.586401 | mae=0.977746 | nmae=0.212993 | r2=0.924718 | pearson=0.962223
+ar_3            | mse=1.618366 | mae=0.990855 | nmae=0.215849 | r2=0.923201 | pearson=0.963559
+time_space_4    | mse=1.658264 | mae=1.053759 | nmae=0.229552 | r2=0.921308 | pearson=0.964051
+time_space_6    | mse=1.720240 | mae=1.012483 | nmae=0.220560 | r2=0.918367 | pearson=0.964455
+ar_4            | mse=1.742645 | mae=1.037848 | nmae=0.226086 | r2=0.917304 | pearson=0.958850
+ar_1            | mse=1.761896 | mae=1.029622 | nmae=0.224294 | r2=0.916390 | pearson=0.957877
+ar_0            | mse=1.886203 | mae=1.076303 | nmae=0.234463 | r2=0.910491 | pearson=0.956266
+time_space_5    | mse=1.904338 | mae=1.064985 | nmae=0.231997 | r2=0.909630 | pearson=0.962940
+tokenizer_last  | mse=8.551432 | mae=2.344988 | nmae=0.510834 | r2=0.594195 | pearson=0.776835
+raw_pose_yaw_full | mse=22.349829 | mae=4.006817 | nmae=0.872848 | r2=-0.060602 | pearson=0.108423
+raw_pose_yaw_past | mse=23.418484 | mae=4.221825 | nmae=0.919686 | r2=-0.111314 | pearson=-0.125003
 ==========================================
 
 ===== summary sorted by r2: past_avg_yaw_rate =====
-time_space_1    | mse=0.018215 | r2=0.327965 | pearson=0.649107
-time_space_0    | mse=0.018327 | r2=0.323832 | pearson=0.642817
-ar_1            | mse=0.027051 | r2=0.001987 | pearson=0.483916
-time_space_2    | mse=0.027503 | r2=-0.014707 | pearson=0.518195
-time_space_10   | mse=0.027709 | r2=-0.022309 | pearson=0.501011
-ar_0            | mse=0.028095 | r2=-0.036524 | pearson=0.491317
-ar_4            | mse=0.028337 | r2=-0.045478 | pearson=0.444989
-ar_2            | mse=0.028363 | r2=-0.046435 | pearson=0.463481
-time_space_9    | mse=0.028611 | r2=-0.055568 | pearson=0.487830
-time_space_11   | mse=0.029099 | r2=-0.073578 | pearson=0.480588
-time_space_4    | mse=0.029188 | r2=-0.076874 | pearson=0.512955
-ar_3            | mse=0.029808 | r2=-0.099732 | pearson=0.419807
-ar_5            | mse=0.030109 | r2=-0.110841 | pearson=0.420816
-time_space_8    | mse=0.031239 | r2=-0.152538 | pearson=0.493940
-time_space_3    | mse=0.033291 | r2=-0.228255 | pearson=0.453082
-time_space_7    | mse=0.034334 | r2=-0.266702 | pearson=0.448487
-time_space_6    | mse=0.038135 | r2=-0.406966 | pearson=0.414753
-time_space_5    | mse=0.044713 | r2=-0.649657 | pearson=0.386474
+time_space_0    | mse=0.057003 | mae=0.169558 | nmae=0.491087 | r2=0.521833 | pearson=0.728057
+time_space_1    | mse=0.062373 | mae=0.186762 | nmae=0.540916 | r2=0.476785 | pearson=0.709454
+time_space_2    | mse=0.091427 | mae=0.217395 | nmae=0.629638 | r2=0.233066 | pearson=0.585363
+time_space_10   | mse=0.101775 | mae=0.232811 | nmae=0.674286 | r2=0.146267 | pearson=0.506557
+time_space_9    | mse=0.105099 | mae=0.237842 | nmae=0.688858 | r2=0.118382 | pearson=0.541050
+time_space_7    | mse=0.105965 | mae=0.241198 | nmae=0.698578 | r2=0.111120 | pearson=0.492007
+time_space_8    | mse=0.115699 | mae=0.256818 | nmae=0.743819 | r2=0.029465 | pearson=0.476736
+ar_5            | mse=0.117260 | mae=0.260543 | nmae=0.754607 | r2=0.016369 | pearson=0.429806
+raw_pose_yaw_past | mse=0.130076 | mae=0.269501 | nmae=0.780552 | r2=-0.091141 | pearson=-0.071629
+tokenizer_last  | mse=0.131271 | mae=0.265358 | nmae=0.768552 | r2=-0.101160 | pearson=0.154852
+ar_0            | mse=0.131299 | mae=0.279338 | nmae=0.809044 | r2=-0.101396 | pearson=0.368742
+time_space_3    | mse=0.135265 | mae=0.264075 | nmae=0.764836 | r2=-0.134668 | pearson=0.492647
+raw_pose_yaw_full | mse=0.136969 | mae=0.273070 | nmae=0.790889 | r2=-0.148959 | pearson=-0.175788
+ar_4            | mse=0.143295 | mae=0.280955 | nmae=0.813727 | r2=-0.202029 | pearson=0.307413
+ar_2            | mse=0.151141 | mae=0.288117 | nmae=0.834468 | r2=-0.267842 | pearson=0.291095
+time_space_4    | mse=0.153419 | mae=0.291828 | nmae=0.845218 | r2=-0.286948 | pearson=0.418791
+ar_1            | mse=0.154020 | mae=0.286171 | nmae=0.828833 | r2=-0.291992 | pearson=0.285003
+next_state_hidden | mse=0.156958 | mae=0.284122 | nmae=0.822897 | r2=-0.316637 | pearson=0.297862
+time_space_11   | mse=0.157577 | mae=0.286192 | nmae=0.828894 | r2=-0.321828 | pearson=0.291927
+ar_3            | mse=0.165413 | mae=0.292585 | nmae=0.847408 | r2=-0.387561 | pearson=0.218620
+time_space_5    | mse=0.198534 | mae=0.334405 | nmae=0.968531 | r2=-0.665394 | pearson=0.260537
+time_space_6    | mse=0.199205 | mae=0.334368 | nmae=0.968424 | r2=-0.671022 | pearson=0.249226
 ==========================================
 
 ===== summary sorted by r2: past_heading_change =====
-time_space_1    | mse=0.142809 | r2=0.327960 | pearson=0.649107
-time_space_0    | mse=0.143686 | r2=0.323835 | pearson=0.642820
-ar_1            | mse=0.212078 | r2=0.001988 | pearson=0.483917
-time_space_2    | mse=0.215624 | r2=-0.014696 | pearson=0.518198
-time_space_10   | mse=0.217242 | r2=-0.022311 | pearson=0.501012
-ar_0            | mse=0.220262 | r2=-0.036522 | pearson=0.491316
-ar_4            | mse=0.222163 | r2=-0.045470 | pearson=0.444993
-ar_2            | mse=0.222367 | r2=-0.046430 | pearson=0.463484
-time_space_9    | mse=0.224309 | r2=-0.055567 | pearson=0.487831
-time_space_11   | mse=0.228135 | r2=-0.073574 | pearson=0.480590
-time_space_4    | mse=0.228837 | r2=-0.076875 | pearson=0.512956
-ar_3            | mse=0.233692 | r2=-0.099723 | pearson=0.419811
-ar_5            | mse=0.236054 | r2=-0.110841 | pearson=0.420817
-time_space_8    | mse=0.244917 | r2=-0.152547 | pearson=0.493937
-time_space_3    | mse=0.261000 | r2=-0.228233 | pearson=0.453089
-time_space_7    | mse=0.269177 | r2=-0.266714 | pearson=0.448486
-time_space_6    | mse=0.298983 | r2=-0.406976 | pearson=0.414750
-time_space_5    | mse=0.350554 | r2=-0.649661 | pearson=0.386473
+time_space_0    | mse=0.513022 | mae=0.508666 | nmae=0.491081 | r2=0.521837 | pearson=0.728059
+time_space_1    | mse=0.561361 | mae=0.560288 | nmae=0.540918 | r2=0.476783 | pearson=0.709453
+time_space_2    | mse=0.822846 | mae=0.652186 | nmae=0.629639 | r2=0.233065 | pearson=0.585362
+time_space_10   | mse=0.915973 | mae=0.698432 | nmae=0.674286 | r2=0.146265 | pearson=0.506557
+time_space_9    | mse=0.945893 | mae=0.713528 | nmae=0.688860 | r2=0.118379 | pearson=0.541048
+time_space_7    | mse=0.953680 | mae=0.723593 | nmae=0.698577 | r2=0.111121 | pearson=0.492007
+time_space_8    | mse=1.041289 | mae=0.770455 | nmae=0.743819 | r2=0.029465 | pearson=0.476735
+ar_5            | mse=1.055338 | mae=0.781630 | nmae=0.754607 | r2=0.016370 | pearson=0.429805
+raw_pose_yaw_past | mse=1.170687 | mae=0.808504 | nmae=0.780552 | r2=-0.091141 | pearson=-0.071629
+tokenizer_last  | mse=1.181436 | mae=0.796074 | nmae=0.768552 | r2=-0.101159 | pearson=0.154852
+ar_0            | mse=1.181688 | mae=0.838015 | nmae=0.809043 | r2=-0.101394 | pearson=0.368742
+time_space_3    | mse=1.217389 | mae=0.792225 | nmae=0.764836 | r2=-0.134669 | pearson=0.492647
+raw_pose_yaw_full | mse=1.232720 | mae=0.819210 | nmae=0.790889 | r2=-0.148958 | pearson=-0.175788
+ar_4            | mse=1.289659 | mae=0.842865 | nmae=0.813725 | r2=-0.202029 | pearson=0.307413
+ar_2            | mse=1.360270 | mae=0.864351 | nmae=0.834469 | r2=-0.267843 | pearson=0.291094
+time_space_4    | mse=1.380774 | mae=0.875487 | nmae=0.845219 | r2=-0.286953 | pearson=0.418790
+ar_1            | mse=1.386183 | mae=0.858515 | nmae=0.828834 | r2=-0.291994 | pearson=0.285002
+next_state_hidden | mse=1.412625 | mae=0.852366 | nmae=0.822898 | r2=-0.316639 | pearson=0.297861
+time_space_11   | mse=1.418190 | mae=0.858574 | nmae=0.828892 | r2=-0.321826 | pearson=0.291928
+ar_3            | mse=1.488719 | mae=0.877754 | nmae=0.847408 | r2=-0.387563 | pearson=0.218619
+time_space_5    | mse=1.786807 | mae=1.003216 | nmae=0.968533 | r2=-0.665397 | pearson=0.260536
+time_space_6    | mse=1.792840 | mae=1.003103 | nmae=0.968424 | r2=-0.671020 | pearson=0.249226
 ==========================================
 
 ===== summary sorted by r2: future_speed =====
-time_space_0    | mse=0.007407 | r2=0.226606 | pearson=0.562860
-time_space_1    | mse=0.008033 | r2=0.161231 | pearson=0.543908
-ar_4            | mse=0.008796 | r2=0.081585 | pearson=0.490467
-ar_5            | mse=0.008935 | r2=0.067025 | pearson=0.478805
-time_space_10   | mse=0.009282 | r2=0.030822 | pearson=0.486421
-ar_3            | mse=0.009290 | r2=0.029990 | pearson=0.467174
-time_space_2    | mse=0.009337 | r2=0.025079 | pearson=0.509563
-ar_1            | mse=0.009371 | r2=0.021444 | pearson=0.493163
-ar_0            | mse=0.009387 | r2=0.019831 | pearson=0.484903
-ar_2            | mse=0.009513 | r2=0.006633 | pearson=0.467770
-time_space_3    | mse=0.010038 | r2=-0.048123 | pearson=0.476629
-time_space_11   | mse=0.010072 | r2=-0.051713 | pearson=0.453182
-time_space_8    | mse=0.010251 | r2=-0.070388 | pearson=0.468903
-time_space_9    | mse=0.010886 | r2=-0.136679 | pearson=0.454269
-time_space_7    | mse=0.011131 | r2=-0.162272 | pearson=0.431305
-time_space_6    | mse=0.011248 | r2=-0.174544 | pearson=0.447819
-time_space_4    | mse=0.011448 | r2=-0.195431 | pearson=0.439935
-time_space_5    | mse=0.014492 | r2=-0.513208 | pearson=0.371220
+time_space_0    | mse=0.270231 | mae=0.383467 | nmae=0.083672 | r2=0.987134 | pearson=0.993597
+time_space_1    | mse=0.391323 | mae=0.476236 | nmae=0.103914 | r2=0.981369 | pearson=0.990913
+time_space_2    | mse=0.430131 | mae=0.511444 | nmae=0.111596 | r2=0.979521 | pearson=0.990537
+time_space_3    | mse=0.657550 | mae=0.625636 | nmae=0.136512 | r2=0.968694 | pearson=0.986646
+time_space_10   | mse=0.725528 | mae=0.678825 | nmae=0.148118 | r2=0.965457 | pearson=0.984146
+time_space_9    | mse=0.787373 | mae=0.720928 | nmae=0.157305 | r2=0.962513 | pearson=0.983694
+ar_2            | mse=0.793160 | mae=0.708900 | nmae=0.154680 | r2=0.962237 | pearson=0.981740
+ar_5            | mse=0.853289 | mae=0.709376 | nmae=0.154784 | r2=0.959375 | pearson=0.981031
+ar_0            | mse=0.863340 | mae=0.747917 | nmae=0.163194 | r2=0.958896 | pearson=0.980644
+ar_4            | mse=0.868058 | mae=0.727222 | nmae=0.158678 | r2=0.958672 | pearson=0.980116
+time_space_6    | mse=0.880795 | mae=0.727689 | nmae=0.158780 | r2=0.958065 | pearson=0.981745
+ar_1            | mse=0.894999 | mae=0.765057 | nmae=0.166934 | r2=0.957389 | pearson=0.979149
+ar_3            | mse=0.922887 | mae=0.749213 | nmae=0.163477 | r2=0.956061 | pearson=0.979657
+time_space_4    | mse=0.948109 | mae=0.752922 | nmae=0.164286 | r2=0.954860 | pearson=0.982076
+time_space_7    | mse=0.959113 | mae=0.795771 | nmae=0.173635 | r2=0.954336 | pearson=0.980541
+time_space_8    | mse=0.985555 | mae=0.806170 | nmae=0.175904 | r2=0.953078 | pearson=0.979722
+time_space_11   | mse=1.086040 | mae=0.836870 | nmae=0.182603 | r2=0.948293 | pearson=0.974586
+next_state_hidden | mse=1.094565 | mae=0.844622 | nmae=0.184294 | r2=0.947887 | pearson=0.974368
+time_space_5    | mse=1.513641 | mae=0.952196 | nmae=0.207767 | r2=0.927935 | pearson=0.972830
+tokenizer_last  | mse=8.606850 | mae=2.348698 | nmae=0.512480 | r2=0.590226 | pearson=0.774859
+raw_pose_yaw_full | mse=21.709230 | mae=3.930019 | nmae=0.857521 | r2=-0.033581 | pearson=0.150968
+raw_pose_yaw_past | mse=23.043375 | mae=4.160808 | nmae=0.907879 | r2=-0.097100 | pearson=-0.100024
 ==========================================
 
 ===== summary sorted by r2: future_yaw_rate =====
-ar_2            | mse=0.111783 | r2=0.025940 | pearson=0.484189
-ar_4            | mse=0.112016 | r2=0.023913 | pearson=0.469102
-ar_1            | mse=0.113824 | r2=0.008160 | pearson=0.492812
-time_space_8    | mse=0.116807 | r2=-0.017834 | pearson=0.513177
-ar_3            | mse=0.117507 | r2=-0.023937 | pearson=0.463738
-time_space_9    | mse=0.119767 | r2=-0.043633 | pearson=0.472304
-ar_5            | mse=0.119860 | r2=-0.044440 | pearson=0.452842
-ar_0            | mse=0.121748 | r2=-0.060891 | pearson=0.478391
-time_space_2    | mse=0.125590 | r2=-0.094368 | pearson=0.448538
-time_space_7    | mse=0.125607 | r2=-0.094521 | pearson=0.470549
-time_space_1    | mse=0.129394 | r2=-0.127515 | pearson=0.407876
-time_space_3    | mse=0.131218 | r2=-0.143415 | pearson=0.461216
-time_space_10   | mse=0.132446 | r2=-0.154113 | pearson=0.412545
-time_space_11   | mse=0.136180 | r2=-0.186650 | pearson=0.352611
-time_space_0    | mse=0.140009 | r2=-0.220017 | pearson=0.343785
-time_space_6    | mse=0.168610 | r2=-0.469243 | pearson=0.380742
-time_space_4    | mse=0.172954 | r2=-0.507089 | pearson=0.402471
-time_space_5    | mse=0.196260 | r2=-0.710180 | pearson=0.349597
+ar_5            | mse=0.085655 | mae=0.222126 | nmae=0.483348 | r2=0.594422 | pearson=0.793212
+ar_1            | mse=0.087960 | mae=0.225271 | nmae=0.490191 | r2=0.583508 | pearson=0.790486
+ar_4            | mse=0.098445 | mae=0.238036 | nmae=0.517968 | r2=0.533862 | pearson=0.758081
+ar_0            | mse=0.101848 | mae=0.244633 | nmae=0.532323 | r2=0.517749 | pearson=0.756489
+ar_2            | mse=0.105886 | mae=0.243037 | nmae=0.528850 | r2=0.498630 | pearson=0.742764
+ar_3            | mse=0.109046 | mae=0.247491 | nmae=0.538542 | r2=0.483666 | pearson=0.724698
+time_space_0    | mse=0.148076 | mae=0.286947 | nmae=0.624400 | r2=0.298860 | pearson=0.643050
+time_space_9    | mse=0.172852 | mae=0.312169 | nmae=0.679283 | r2=0.181543 | pearson=0.602258
+time_space_11   | mse=0.206929 | mae=0.354009 | nmae=0.770328 | r2=0.020188 | pearson=0.540789
+tokenizer_last  | mse=0.218024 | mae=0.336743 | nmae=0.732757 | r2=-0.032348 | pearson=0.123622
+time_space_2    | mse=0.218628 | mae=0.358032 | nmae=0.779081 | r2=-0.035205 | pearson=0.577315
+next_state_hidden | mse=0.219247 | mae=0.363289 | nmae=0.790520 | r2=-0.038139 | pearson=0.522753
+time_space_10   | mse=0.219677 | mae=0.344803 | nmae=0.750295 | r2=-0.040173 | pearson=0.543961
+time_space_8    | mse=0.221919 | mae=0.342806 | nmae=0.745949 | r2=-0.050790 | pearson=0.534293
+raw_pose_yaw_past | mse=0.223784 | mae=0.342313 | nmae=0.744875 | r2=-0.059622 | pearson=0.006317
+raw_pose_yaw_full | mse=0.229013 | mae=0.345612 | nmae=0.752055 | r2=-0.084382 | pearson=-0.091333
+time_space_1    | mse=0.258253 | mae=0.391805 | nmae=0.852571 | r2=-0.222832 | pearson=0.519172
+time_space_7    | mse=0.310941 | mae=0.382399 | nmae=0.832104 | r2=-0.472312 | pearson=0.469561
+time_space_3    | mse=0.311233 | mae=0.418216 | nmae=0.910043 | r2=-0.473693 | pearson=0.482662
+time_space_4    | mse=0.319435 | mae=0.418655 | nmae=0.910998 | r2=-0.512527 | pearson=0.507918
+time_space_6    | mse=0.367610 | mae=0.446956 | nmae=0.972580 | r2=-0.740640 | pearson=0.452521
+time_space_5    | mse=0.584464 | mae=0.577215 | nmae=1.256026 | r2=-1.767446 | pearson=0.382453
 ==========================================
 
 ===== summary sorted by r2: future_delta_yaw =====
-ar_2            | mse=0.004471 | r2=0.025939 | pearson=0.484189
-ar_4            | mse=0.004481 | r2=0.023913 | pearson=0.469102
-ar_1            | mse=0.004553 | r2=0.008157 | pearson=0.492811
-time_space_8    | mse=0.004672 | r2=-0.017832 | pearson=0.513177
-ar_3            | mse=0.004700 | r2=-0.023938 | pearson=0.463738
-time_space_9    | mse=0.004791 | r2=-0.043630 | pearson=0.472305
-ar_5            | mse=0.004794 | r2=-0.044441 | pearson=0.452841
-ar_0            | mse=0.004870 | r2=-0.060890 | pearson=0.478391
-time_space_2    | mse=0.005024 | r2=-0.094365 | pearson=0.448539
-time_space_7    | mse=0.005024 | r2=-0.094520 | pearson=0.470550
-time_space_1    | mse=0.005176 | r2=-0.127517 | pearson=0.407875
-time_space_3    | mse=0.005249 | r2=-0.143417 | pearson=0.461216
-time_space_10   | mse=0.005298 | r2=-0.154112 | pearson=0.412546
-time_space_11   | mse=0.005447 | r2=-0.186650 | pearson=0.352611
-time_space_0    | mse=0.005600 | r2=-0.220015 | pearson=0.343785
-time_space_6    | mse=0.006744 | r2=-0.469243 | pearson=0.380742
-time_space_4    | mse=0.006918 | r2=-0.507094 | pearson=0.402471
-time_space_5    | mse=0.007850 | r2=-0.710181 | pearson=0.349597
+ar_5            | mse=0.003426 | mae=0.044425 | nmae=0.483348 | r2=0.594422 | pearson=0.793212
+ar_1            | mse=0.003518 | mae=0.045054 | nmae=0.490191 | r2=0.583508 | pearson=0.790486
+ar_4            | mse=0.003938 | mae=0.047607 | nmae=0.517967 | r2=0.533863 | pearson=0.758081
+ar_0            | mse=0.004074 | mae=0.048927 | nmae=0.532324 | r2=0.517748 | pearson=0.756489
+ar_2            | mse=0.004235 | mae=0.048607 | nmae=0.528851 | r2=0.498629 | pearson=0.742764
+ar_3            | mse=0.004362 | mae=0.049498 | nmae=0.538543 | r2=0.483666 | pearson=0.724698
+time_space_0    | mse=0.005923 | mae=0.057390 | nmae=0.624401 | r2=0.298867 | pearson=0.643052
+time_space_9    | mse=0.006914 | mae=0.062434 | nmae=0.679282 | r2=0.181545 | pearson=0.602259
+time_space_11   | mse=0.008277 | mae=0.070802 | nmae=0.770331 | r2=0.020183 | pearson=0.540788
+tokenizer_last  | mse=0.008721 | mae=0.067349 | nmae=0.732757 | r2=-0.032348 | pearson=0.123622
+time_space_2    | mse=0.008745 | mae=0.071606 | nmae=0.779082 | r2=-0.035206 | pearson=0.577315
+next_state_hidden | mse=0.008770 | mae=0.072658 | nmae=0.790521 | r2=-0.038140 | pearson=0.522752
+time_space_10   | mse=0.008787 | mae=0.068961 | nmae=0.750295 | r2=-0.040171 | pearson=0.543962
+time_space_8    | mse=0.008877 | mae=0.068561 | nmae=0.745950 | r2=-0.050791 | pearson=0.534293
+raw_pose_yaw_past | mse=0.008951 | mae=0.068463 | nmae=0.744875 | r2=-0.059622 | pearson=0.006317
+raw_pose_yaw_full | mse=0.009161 | mae=0.069122 | nmae=0.752055 | r2=-0.084382 | pearson=-0.091333
+time_space_1    | mse=0.010330 | mae=0.078360 | nmae=0.852565 | r2=-0.222821 | pearson=0.519173
+time_space_7    | mse=0.012438 | mae=0.076480 | nmae=0.832104 | r2=-0.472314 | pearson=0.469561
+time_space_3    | mse=0.012449 | mae=0.083644 | nmae=0.910046 | r2=-0.473704 | pearson=0.482661
+time_space_4    | mse=0.012777 | mae=0.083731 | nmae=0.910998 | r2=-0.512529 | pearson=0.507919
+time_space_6    | mse=0.014704 | mae=0.089391 | nmae=0.972582 | r2=-0.740638 | pearson=0.452520
+time_space_5    | mse=0.023379 | mae=0.115443 | nmae=1.256027 | r2=-1.767449 | pearson=0.382453
 ==========================================
+
+===== summary sorted by r2: future_forward_progress =====
+time_space_0    | mse=0.010822 | mae=0.076745 | nmae=0.083698 | r2=0.987129 | pearson=0.993592
+time_space_1    | mse=0.015652 | mae=0.095145 | nmae=0.103765 | r2=0.981383 | pearson=0.990933
+time_space_2    | mse=0.017280 | mae=0.102613 | nmae=0.111909 | r2=0.979447 | pearson=0.990486
+time_space_3    | mse=0.026122 | mae=0.124513 | nmae=0.135793 | r2=0.968930 | pearson=0.986721
+time_space_10   | mse=0.029093 | mae=0.136129 | nmae=0.148462 | r2=0.965396 | pearson=0.984112
+time_space_9    | mse=0.031515 | mae=0.144296 | nmae=0.157369 | r2=0.962516 | pearson=0.983697
+ar_2            | mse=0.031703 | mae=0.141694 | nmae=0.154530 | r2=0.962292 | pearson=0.981771
+ar_5            | mse=0.034131 | mae=0.141806 | nmae=0.154653 | r2=0.959405 | pearson=0.981062
+ar_0            | mse=0.034635 | mae=0.149948 | nmae=0.163533 | r2=0.958805 | pearson=0.980587
+ar_4            | mse=0.034725 | mae=0.145286 | nmae=0.158448 | r2=0.958698 | pearson=0.980127
+time_space_6    | mse=0.035336 | mae=0.145302 | nmae=0.158466 | r2=0.957971 | pearson=0.981688
+ar_1            | mse=0.035836 | mae=0.153061 | nmae=0.166928 | r2=0.957377 | pearson=0.979145
+ar_3            | mse=0.036842 | mae=0.149584 | nmae=0.163135 | r2=0.956180 | pearson=0.979701
+time_space_4    | mse=0.037939 | mae=0.150481 | nmae=0.164114 | r2=0.954875 | pearson=0.982144
+time_space_7    | mse=0.038256 | mae=0.159005 | nmae=0.173410 | r2=0.954498 | pearson=0.980637
+time_space_8    | mse=0.039339 | mae=0.160978 | nmae=0.175562 | r2=0.953210 | pearson=0.979780
+time_space_11   | mse=0.043459 | mae=0.167444 | nmae=0.182613 | r2=0.948310 | pearson=0.974597
+next_state_hidden | mse=0.043799 | mae=0.168976 | nmae=0.184284 | r2=0.947906 | pearson=0.974381
+time_space_5    | mse=0.060052 | mae=0.189222 | nmae=0.206365 | r2=0.928574 | pearson=0.973078
+tokenizer_last  | mse=0.344475 | mae=0.469872 | nmae=0.512441 | r2=0.590281 | pearson=0.774903
+raw_pose_yaw_full | mse=0.869052 | mae=0.786272 | nmae=0.857505 | r2=-0.033650 | pearson=0.150959
+raw_pose_yaw_past | mse=0.922416 | mae=0.832448 | nmae=0.907865 | r2=-0.097121 | pearson=-0.100084
+==========================================
+
+===== summary sorted by r2: future_lateral_offset =====
+raw_pose_yaw_past | mse=0.000027 | mae=0.003861 | nmae=0.783580 | r2=-0.100317 | pearson=-0.062700
+raw_pose_yaw_full | mse=0.000027 | mae=0.003895 | nmae=0.790471 | r2=-0.105276 | pearson=-0.024003
+tokenizer_last  | mse=0.000027 | mae=0.003823 | nmae=0.775762 | r2=-0.111034 | pearson=0.020908
+ar_5            | mse=0.000051 | mae=0.005592 | nmae=1.134859 | r2=-1.101440 | pearson=0.192956
+ar_3            | mse=0.000056 | mae=0.005855 | nmae=1.188158 | r2=-1.295642 | pearson=0.196398
+ar_2            | mse=0.000058 | mae=0.005873 | nmae=1.191825 | r2=-1.378595 | pearson=0.171198
+ar_1            | mse=0.000061 | mae=0.006026 | nmae=1.222881 | r2=-1.523457 | pearson=0.153969
+ar_0            | mse=0.000062 | mae=0.006044 | nmae=1.226610 | r2=-1.561330 | pearson=0.141841
+ar_4            | mse=0.000066 | mae=0.006200 | nmae=1.258272 | r2=-1.700397 | pearson=0.166302
+next_state_hidden | mse=0.000091 | mae=0.007194 | nmae=1.459971 | r2=-2.767799 | pearson=0.062221
+time_space_1    | mse=0.000093 | mae=0.007307 | nmae=1.482831 | r2=-2.819674 | pearson=0.002273
+time_space_10   | mse=0.000093 | mae=0.007083 | nmae=1.437289 | r2=-2.843666 | pearson=0.178734
+time_space_0    | mse=0.000094 | mae=0.007573 | nmae=1.536850 | r2=-2.865876 | pearson=-0.096973
+time_space_11   | mse=0.000098 | mae=0.007466 | nmae=1.515088 | r2=-3.054486 | pearson=0.054609
+time_space_9    | mse=0.000105 | mae=0.007748 | nmae=1.572367 | r2=-3.303605 | pearson=0.107809
+time_space_6    | mse=0.000110 | mae=0.007979 | nmae=1.619153 | r2=-3.534650 | pearson=0.041169
+time_space_8    | mse=0.000114 | mae=0.008062 | nmae=1.636078 | r2=-3.709254 | pearson=0.059699
+time_space_2    | mse=0.000127 | mae=0.008809 | nmae=1.787562 | r2=-4.215319 | pearson=-0.069044
+time_space_7    | mse=0.000136 | mae=0.008767 | nmae=1.779218 | r2=-4.590759 | pearson=0.012525
+time_space_5    | mse=0.000142 | mae=0.008855 | nmae=1.796918 | r2=-4.833644 | pearson=-0.031440
+time_space_3    | mse=0.000167 | mae=0.009998 | nmae=2.029019 | r2=-5.867991 | pearson=0.014516
+time_space_4    | mse=0.000207 | mae=0.011036 | nmae=2.239567 | r2=-7.534838 | pearson=-0.001476
+==========================================
+
+===== summary sorted by r2: future_speed_delta =====
+raw_pose_yaw_past | mse=0.017549 | mae=0.094872 | nmae=0.752338 | r2=-0.103579 | pearson=-0.073695
+raw_pose_yaw_full | mse=0.018375 | mae=0.097468 | nmae=0.772927 | r2=-0.155511 | pearson=-0.203607
+ar_3            | mse=0.020126 | mae=0.109932 | nmae=0.871765 | r2=-0.265622 | pearson=0.404431
+tokenizer_last  | mse=0.022126 | mae=0.106000 | nmae=0.840585 | r2=-0.391398 | pearson=-0.288064
+ar_4            | mse=0.023228 | mae=0.121303 | nmae=0.961939 | r2=-0.460699 | pearson=0.328546
+ar_2            | mse=0.024159 | mae=0.119044 | nmae=0.944020 | r2=-0.519234 | pearson=0.290055
+ar_0            | mse=0.024683 | mae=0.124834 | nmae=0.989936 | r2=-0.552216 | pearson=0.379208
+time_space_9    | mse=0.024806 | mae=0.123078 | nmae=0.976008 | r2=-0.559907 | pearson=0.414161
+ar_5            | mse=0.025882 | mae=0.124590 | nmae=0.988003 | r2=-0.627582 | pearson=0.218812
+next_state_hidden | mse=0.027614 | mae=0.131146 | nmae=1.039990 | r2=-0.736544 | pearson=0.308979
+ar_1            | mse=0.028399 | mae=0.130104 | nmae=1.031731 | r2=-0.785903 | pearson=0.301736
+time_space_11   | mse=0.028731 | mae=0.133130 | nmae=1.055725 | r2=-0.806727 | pearson=0.290972
+time_space_8    | mse=0.030040 | mae=0.137632 | nmae=1.091427 | r2=-0.889079 | pearson=0.414514
+time_space_10   | mse=0.030143 | mae=0.126893 | nmae=1.006265 | r2=-0.895564 | pearson=0.237346
+time_space_0    | mse=0.030792 | mae=0.136219 | nmae=1.080217 | r2=-0.936358 | pearson=0.135330
+time_space_2    | mse=0.036891 | mae=0.155632 | nmae=1.234169 | r2=-1.319887 | pearson=0.216211
+time_space_1    | mse=0.038526 | mae=0.155629 | nmae=1.234140 | r2=-1.422714 | pearson=0.165076
+time_space_3    | mse=0.040746 | mae=0.161045 | nmae=1.277089 | r2=-1.562308 | pearson=0.190774
+time_space_4    | mse=0.044299 | mae=0.158699 | nmae=1.258489 | r2=-1.785774 | pearson=0.124070
+time_space_5    | mse=0.049596 | mae=0.161384 | nmae=1.279782 | r2=-2.118852 | pearson=0.201464
+time_space_7    | mse=0.051079 | mae=0.177598 | nmae=1.408360 | r2=-2.212096 | pearson=0.267296
+time_space_6    | mse=0.052186 | mae=0.172290 | nmae=1.366262 | r2=-2.281740 | pearson=0.168953
+==========================================
+
+===== summary sorted by r2: future_acc =====
+raw_pose_yaw_past | mse=0.438727 | mae=0.474360 | nmae=0.752338 | r2=-0.103579 | pearson=-0.073695
+raw_pose_yaw_full | mse=0.459373 | mae=0.487342 | nmae=0.772927 | r2=-0.155511 | pearson=-0.203607
+ar_3            | mse=0.503147 | mae=0.549661 | nmae=0.871765 | r2=-0.265622 | pearson=0.404431
+tokenizer_last  | mse=0.553149 | mae=0.530002 | nmae=0.840585 | r2=-0.391397 | pearson=-0.288064
+ar_4            | mse=0.580698 | mae=0.606516 | nmae=0.961937 | r2=-0.460693 | pearson=0.328546
+ar_2            | mse=0.603970 | mae=0.595218 | nmae=0.944019 | r2=-0.519231 | pearson=0.290056
+ar_0            | mse=0.617083 | mae=0.624170 | nmae=0.989937 | r2=-0.552218 | pearson=0.379208
+time_space_9    | mse=0.620139 | mae=0.615387 | nmae=0.976006 | r2=-0.559903 | pearson=0.414161
+ar_5            | mse=0.647042 | mae=0.622950 | nmae=0.988001 | r2=-0.627576 | pearson=0.218813
+next_state_hidden | mse=0.690363 | mae=0.655730 | nmae=1.039990 | r2=-0.736546 | pearson=0.308978
+ar_1            | mse=0.709984 | mae=0.650522 | nmae=1.031731 | r2=-0.785901 | pearson=0.301736
+time_space_11   | mse=0.718262 | mae=0.665650 | nmae=1.055724 | r2=-0.806724 | pearson=0.290974
+time_space_8    | mse=0.751000 | mae=0.688161 | nmae=1.091426 | r2=-0.889073 | pearson=0.414516
+time_space_10   | mse=0.753581 | mae=0.634464 | nmae=1.006263 | r2=-0.895564 | pearson=0.237344
+time_space_0    | mse=0.769795 | mae=0.681089 | nmae=1.080210 | r2=-0.936351 | pearson=0.135334
+time_space_2    | mse=0.922268 | mae=0.778163 | nmae=1.234170 | r2=-1.319883 | pearson=0.216210
+time_space_1    | mse=0.963140 | mae=0.778141 | nmae=1.234135 | r2=-1.422694 | pearson=0.165079
+time_space_3    | mse=1.018646 | mae=0.805226 | nmae=1.277093 | r2=-1.562314 | pearson=0.190772
+time_space_4    | mse=1.107487 | mae=0.793498 | nmae=1.258491 | r2=-1.785783 | pearson=0.124067
+time_space_5    | mse=1.239896 | mae=0.806920 | nmae=1.279778 | r2=-2.118847 | pearson=0.201465
+time_space_7    | mse=1.276960 | mae=0.887989 | nmae=1.408355 | r2=-2.212079 | pearson=0.267295
+time_space_6    | mse=1.304652 | mae=0.861447 | nmae=1.366260 | r2=-2.281735 | pearson=0.168953
+==========================================
+
+===== AGS group summary sorted by mean r2 =====
+ar_3            | mean_mse=0.228066 | mean_mae=0.265891 | mean_nmae=0.619341 | mean_r2=0.150384 | mean_pearson=0.630574
+ar_5            | mean_mse=0.235639 | mean_mae=0.267266 | mean_nmae=0.626714 | mean_r2=0.107289 | mean_pearson=0.597014
+ar_2            | mean_mse=0.223310 | mean_mae=0.266053 | mean_nmae=0.635254 | mean_r2=0.072104 | mean_pearson=0.600050
+ar_4            | mean_mse=0.229880 | mean_mae=0.270310 | mean_nmae=0.647887 | mean_r2=0.051901 | mean_pearson=0.614257
+ar_0            | mean_mse=0.235104 | mean_mae=0.278068 | mean_nmae=0.656837 | mean_r2=0.041062 | mean_pearson=0.624924
+tokenizer_last  | mean_mse=1.393339 | mean_mae=0.551784 | mean_nmae=0.706767 | mean_r2=0.031712 | mean_pearson=0.177398
+ar_1            | mean_mse=0.251537 | mean_mae=0.282156 | mean_nmae=0.657227 | mean_r2=-0.001926 | mean_pearson=0.613815
+raw_pose_yaw_past | mean_mse=3.522119 | mean_mae=0.853875 | mean_nmae=0.799107 | mean_r2=-0.088706 | mean_pearson=-0.056795
+raw_pose_yaw_full | mean_mse=3.327747 | mean_mae=0.817104 | mean_nmae=0.793637 | mean_r2=-0.093185 | mean_pearson=-0.044565
+time_space_9    | mean_mse=0.234815 | mean_mae=0.283720 | mean_nmae=0.742517 | mean_r2=-0.305042 | mean_pearson=0.586863
+time_space_0    | mean_mse=0.176533 | mean_mae=0.232776 | mean_nmae=0.730493 | mean_r2=-0.309514 | mean_pearson=0.492426
+next_state_hidden | mean_mse=0.297779 | mean_mae=0.320516 | mean_nmae=0.784224 | mean_r2=-0.345911 | mean_pearson=0.524919
+time_space_11   | mean_mse=0.298828 | mean_mae=0.319339 | mean_nmae=0.790345 | mean_r2=-0.390138 | mean_pearson=0.523902
+time_space_10   | mean_mse=0.252415 | mean_mae=0.285308 | mean_nmae=0.749569 | mean_r2=-0.397755 | mean_pearson=0.529944
+time_space_8    | mean_mse=0.290978 | mean_mae=0.316053 | mean_nmae=0.808899 | mean_r2=-0.526100 | mean_pearson=0.559545
+time_space_1    | mean_mse=0.239617 | mean_mae=0.283232 | mean_nmae=0.837703 | mean_r2=-0.592569 | mean_pearson=0.478945
+time_space_2    | mean_mse=0.233438 | mean_mae=0.283757 | mean_nmae=0.862510 | mean_r2=-0.709505 | mean_pearson=0.499861
+time_space_6    | mean_mse=0.379342 | mean_mae=0.350151 | mean_nmae=0.944869 | mean_r2=-1.094767 | mean_pearson=0.463935
+time_space_3    | mean_mse=0.295273 | mean_mae=0.318325 | mean_nmae=0.953656 | mean_r2=-1.143198 | mean_pearson=0.476393
+time_space_7    | mean_mse=0.378418 | mean_mae=0.355430 | mean_nmae=0.943884 | mean_r2=-1.150104 | mean_pearson=0.492488
+time_space_4    | mean_mse=0.352893 | mean_mae=0.338432 | mean_nmae=0.986706 | mean_r2=-1.460245 | mean_pearson=0.460960
+time_space_5    | mean_mse=0.495881 | mean_mae=0.401605 | mean_nmae=1.040380 | mean_r2=-1.535676 | mean_pearson=0.440329
+==========================================================

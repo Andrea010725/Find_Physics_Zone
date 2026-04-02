@@ -6,3 +6,4 @@ __pycache__/
 *.ckpt
 *.zip
 *.part
+nuplan-v1.1_mini_camera_0/

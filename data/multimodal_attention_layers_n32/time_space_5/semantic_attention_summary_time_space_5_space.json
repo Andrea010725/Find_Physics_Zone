@@ -1,0 +1,77 @@
+{
+  "attention_layer": "time_space_5.space",
+  "hidden_layer": "time_space_5",
+  "num_samples": 32,
+  "token_stat": "norm",
+  "targets": {
+    "speed": "future_speed",
+    "offset": "future_lateral_offset",
+    "progress": "future_forward_progress"
+  },
+  "semantic_tokens": [
+    {
+      "semantic": "yaw",
+      "token_idx": 0,
+      "target_key": null,
+      "abs_corr": null,
+      "token_name": "yaw"
+    },
+    {
+      "semantic": "speed",
+      "token_idx": 134,
+      "target_key": "future_speed",
+      "abs_corr": 0.970931935719244,
+      "token_name": "img[4,3]"
+    },
+    {
+      "semantic": "offset",
+      "token_idx": 65,
+      "target_key": "future_lateral_offset",
+      "abs_corr": 0.5984048732031325,
+      "token_name": "img[1,30]"
+    },
+    {
+      "semantic": "progress",
+      "token_idx": 421,
+      "target_key": "future_forward_progress",
+      "abs_corr": 0.9668215573450644,
+      "token_name": "img[13,2]"
+    }
+  ],
+  "semantic_attention_matrix": [
+    [
+      0.013694525696337223,
+      0.0015468815108761191,
+      0.0007606815197505057,
+      0.0004354281700216234
+    ],
+    [
+      0.0014670426025986671,
+      0.02220688760280609,
+      0.000269783369731158,
+      0.0002646126667968929
+    ],
+    [
+      0.0017487489385530353,
+      0.0003068289952352643,
+      0.03750921040773392,
+      7.683121657464653e-05
+    ],
+    [
+      0.005532168783247471,
+      0.000452915410278365,
+      0.0003816738026216626,
+      0.026470646262168884
+    ]
+  ],
+  "semantic_labels": [
+    "yaw (yaw)",
+    "speed (img[4,3])",
+    "offset (img[1,30])",
+    "progress (img[13,2])"
+  ],
+  "output_files": {
+    "semantic_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_layers_n32/time_space_5/semantic_attention_time_space_5_space.png",
+    "full_heatmap_png": "/home/yanda/Find_Physics_Zone/data/multimodal_attention_layers_n32/time_space_5/mean_attention_full_time_space_5_space.png"
+  }
+}

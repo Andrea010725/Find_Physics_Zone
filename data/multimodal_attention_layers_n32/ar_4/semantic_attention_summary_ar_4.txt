@@ -1,0 +1,16 @@
+attention_layer: ar_4
+hidden_layer: ar_4
+num_samples: 32
+token_stat: norm
+
+semantic token mapping:
+- yaw      -> idx=   0 name=yaw          target=None abs_corr=None
+- speed    -> idx=   2 name=pose_y       target=future_speed abs_corr=0.9261316940235108
+- offset   -> idx= 249 name=img[7,22]    target=future_lateral_offset abs_corr=0.48918649144659676
+- progress -> idx= 452 name=img[14,1]    target=future_forward_progress abs_corr=0.8932115685022007
+
+semantic attention matrix (query rows -> key cols):
+- yaw (yaw): 1.000000, 0.000000, 0.000000, 0.000000
+- speed (pose_y): 0.531679, 0.019263, 0.000000, 0.000000
+- offset (img[7,22]): 0.162175, 0.003526, 0.133991, 0.000000
+- progress (img[14,1]): 0.117040, 0.003846, 0.000137, 0.072830

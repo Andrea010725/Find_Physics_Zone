@@ -29,48 +29,67 @@ def safe_yaw_diff(yaw2, yaw1):
     return torch.remainder(diff + 180.0, 360.0) - 180.0
 
 
-def compute_step_motion(poses, yaws, t, fps):
-    """
-    Compute one-step motion from t-1 -> t.
-    poses: [T, 2]
-    yaws:  [T, 1]
-    """
-    delta_xy = poses[t] - poses[t - 1]
-    delta_yaw = safe_yaw_diff(yaws[t, 0], yaws[t - 1, 0])
+def compute_step_speed(poses, t, fps):
+    return torch.norm(poses[t]) * fps
 
-    speed = torch.norm(delta_xy) * fps
-    yaw_rate = delta_yaw * fps
+
+def compute_step_yaw_rate(yaws, t, fps):
+    return yaws[t, 0] * fps
+
+
+def compute_future_motion(poses, yaws, t, fps):
+    """
+    Compute the future step motion at index t.
+    poses: [T, 2] local-frame step displacement per frame
+    yaws:  [T, 1] local-frame step yaw increment per frame (degrees)
+    """
+    step_xy = poses[t]
+    step_yaw = yaws[t, 0]
+
+    speed = compute_step_speed(poses, t, fps)
+    yaw_rate = compute_step_yaw_rate(yaws, t, fps)
+
+    if t > 0:
+        prev_speed = compute_step_speed(poses, t - 1, fps)
+        speed_delta = speed - prev_speed
+        acc = speed_delta * fps
+    else:
+        speed_delta = torch.tensor(0.0, dtype=poses.dtype, device=poses.device)
+        acc = torch.tensor(0.0, dtype=poses.dtype, device=poses.device)
 
     return {
-        "delta_x": float(delta_xy[0].item()),
-        "delta_y": float(delta_xy[1].item()),
-        "delta_yaw": float(delta_yaw.item()),
+        "delta_x": float(step_xy[0].item()),
+        "delta_y": float(step_xy[1].item()),
+        "delta_yaw": float(step_yaw.item()),
         "speed": float(speed.item()),
         "yaw_rate": float(yaw_rate.item()),
+        "forward_progress": float(step_xy[0].item()),
+        "lateral_offset": float(step_xy[1].item()),
+        "speed_delta": float(speed_delta.item()),
+        "acc": float(acc.item()),
     }
 
 
 def compute_past_summary(poses, yaws, start, k, fps):
     """
-    Summarize motion over past window [start, start+k-1].
+    Summarize local motion over past window [start, start+k-1].
     """
     end = start + k - 1
 
     speeds = []
     yaw_rates = []
-    for t in range(start + 1, end + 1):
-        m = compute_step_motion(poses, yaws, t, fps)
-        speeds.append(m["speed"])
-        yaw_rates.append(m["yaw_rate"])
-
-    heading_change = safe_yaw_diff(yaws[end, 0], yaws[start, 0])
+    heading_terms = []
+    for t in range(start, end + 1):
+        speeds.append(float(compute_step_speed(poses, t, fps).item()))
+        yaw_rates.append(float(compute_step_yaw_rate(yaws, t, fps).item()))
+        heading_terms.append(float(yaws[t, 0].item()))
 
     return {
         "past_avg_speed": float(np.mean(speeds)),
         "past_final_speed": float(speeds[-1]),
         "past_avg_yaw_rate": float(np.mean(yaw_rates)),
         "past_final_yaw_rate": float(yaw_rates[-1]),
-        "past_heading_change": float(heading_change.item()),
+        "past_heading_change": float(np.sum(heading_terms)),
     }
 
 
@@ -121,7 +140,7 @@ def main(args):
             future_t = past_end + h
 
             past_summary = compute_past_summary(poses, yaws, start, k, fps)
-            future_motion = compute_step_motion(poses, yaws, future_t, fps)
+            future_motion = compute_future_motion(poses, yaws, future_t, fps)
 
             sample = {
                 "index": int(len(samples)),
@@ -142,6 +161,10 @@ def main(args):
                 "future_delta_yaw": future_motion["delta_yaw"],
                 "future_speed": future_motion["speed"],
                 "future_yaw_rate": future_motion["yaw_rate"],
+                "future_forward_progress": future_motion["forward_progress"],
+                "future_lateral_offset": future_motion["lateral_offset"],
+                "future_speed_delta": future_motion["speed_delta"],
+                "future_acc": future_motion["acc"],
                 "future_turn_class": future_turn_class(future_motion["delta_yaw"]),
             }
 
@@ -175,7 +198,8 @@ def main(args):
     for key in [
         "past_avg_speed", "past_final_speed", "past_avg_yaw_rate",
         "past_heading_change", "future_speed", "future_yaw_rate",
-        "future_delta_yaw"
+        "future_delta_yaw", "future_forward_progress", "future_lateral_offset",
+        "future_speed_delta", "future_acc"
     ]:
         vals = [s[key] for s in samples]
         print(f"{key:20s} mean={np.mean(vals):.6f}, std={np.std(vals):.6f}, "
